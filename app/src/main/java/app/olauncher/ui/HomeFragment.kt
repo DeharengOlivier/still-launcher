@@ -386,13 +386,13 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                 is HomeEntry.Group -> {
                     val group = entry
                     val isOpen = group.name == openGroup
-                    container.addView(groupRow(group.name + if (isOpen) "  −" else "  +", indent = false,
+                    container.addView(groupRow(group.name, indent = false,
                         onClick = {
                             openGroup = if (isOpen) null else group.name
                             populateGroups()
                         },
                         onLongClick = { showGroupMenu(index, group.name) }
-                    ))
+                    ).also { withGroupMarker(it, isOpen) })
                     if (isOpen) group.apps.forEach { app ->
                         container.addView(groupRow(app.label, indent = true,
                             onClick = { launchHomeApp(app) },
@@ -448,6 +448,20 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         AlertDialog.Builder(context)
             .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
             .show()
+    }
+
+    /** A light chevron after a closed group's name, a short line once it is open. */
+    private fun withGroupMarker(row: TextView, isOpen: Boolean) {
+        val icon = androidx.core.content.ContextCompat.getDrawable(
+            requireContext(), if (isOpen) R.drawable.ic_group_open else R.drawable.ic_group_closed
+        )?.mutate() ?: return
+        val size = (row.textSize * 0.7f).toInt()
+        icon.setBounds(0, 0, size, size)
+        icon.setTint(row.currentTextColor)
+        icon.alpha = 140
+        row.text = android.text.SpannableStringBuilder(row.text).append("  ").append(
+            " ", android.text.style.ImageSpan(icon, android.text.style.DynamicDrawableSpan.ALIGN_CENTER), 0
+        )
     }
 
     private fun groupRow(text: String, indent: Boolean, onClick: () -> Unit, onLongClick: () -> Unit): TextView {

@@ -137,4 +137,5 @@
     <string name="home_move_down">Move down</string>
     <string name="corner_phone">Phone</string>
     <string name="corner_camera">Camera</string>
+    <string name="open_settings">Settings</string>
 </resources>

@@ -49,6 +49,17 @@
             android:textAllCaps="true"
             android:visibility="gone" />
 
+
+        <ImageView
+            android:id="@+id/openSettings"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:alpha="0.5"
+            android:contentDescription="@string/open_settings"
+            android:padding="12dp"
+            android:src="@drawable/ic_settings_gear"
+            app:tint="?attr/primaryColor" />
     </LinearLayout>
 
     <Space
