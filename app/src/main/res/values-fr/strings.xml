@@ -115,4 +115,5 @@
     <string name="home_edit_done">Terminé</string>
     <string name="group_delete_confirm">Supprimer le groupe %1$s ? Ses applis restent dans la liste.</string>
     <string name="home_edit_remove">Retirer</string>
+    <string name="group_app_size">Taille des applis dans les groupes</string>
 </resources><!-- French -->

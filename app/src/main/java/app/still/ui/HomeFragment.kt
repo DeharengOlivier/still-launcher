@@ -1,5 +1,6 @@
 package app.still.ui
 
+import app.still.helper.StillDialog
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.Intent
@@ -409,10 +410,10 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         layout.entries.forEachIndexed { index, entry ->
             when (entry) {
                 is HomeEntry.App -> container.addView(
-                    if (editing) editRow(entry.app.label, index, onRemove = {
-                        saveAndRefresh(prefs.homeLayout.removeApp(entry.app))
-                    })
-                    else groupRow(entry.app.label, indent = false,
+                    if (editing) editRow(shownLabel(entry.app), index,
+                        onEdit = { renameApp(entry.app) },
+                        onRemove = { saveAndRefresh(prefs.homeLayout.removeApp(entry.app)) })
+                    else groupRow(shownLabel(entry.app), indent = false,
                         onClick = { launchHomeApp(entry.app) },
                         onLongClick = { setEditing(true) }
                     )
@@ -426,7 +427,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                     }
                     container.addView(
                         if (editing) editRow(group.name, index, isOpen = isOpen, onTap = toggle,
-                            onLongPress = { renameGroup(group.name) },
+                            onEdit = { renameGroup(group.name) },
                             onRemove = { confirmDeleteGroup(group.name) })
                         else groupRow(group.name, indent = false, onClick = toggle,
                             onLongClick = { setEditing(true) }
@@ -434,10 +435,10 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                     )
                     if (isOpen) group.apps.forEach { app ->
                         container.addView(
-                            if (editing) editRow(app.label, index = null, indent = true, onRemove = {
-                                saveAndRefresh(prefs.homeLayout.removeFromGroup(group.name, app))
-                            })
-                            else groupRow(app.label, indent = true,
+                            if (editing) editRow(shownLabel(app), index = null, indent = true,
+                                onEdit = { renameApp(app) },
+                                onRemove = { saveAndRefresh(prefs.homeLayout.removeFromGroup(group.name, app)) })
+                            else groupRow(shownLabel(app), indent = true,
                                 onClick = { launchHomeApp(app) },
                                 onLongClick = { setEditing(true) }
                             )
@@ -509,13 +510,20 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         }
     }
 
-    private fun confirmDeleteGroup(groupName: String) {
-        AlertDialog.Builder(requireContext())
-            .setMessage(getString(R.string.group_delete_confirm, groupName))
-            .setPositiveButton(R.string.group_delete) { _, _ -> saveAndRefresh(prefs.homeLayout.deleteGroup(groupName)) }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
+    private fun confirmDeleteGroup(groupName: String) =
+        StillDialog.confirm(
+            requireContext(), getString(R.string.group_delete_confirm, groupName), getString(R.string.group_delete)
+        ) { saveAndRefresh(prefs.homeLayout.deleteGroup(groupName)) }
+
+    /** The name shown for an app: the user's rename (shared with the app list), else the system label. */
+    private fun shownLabel(app: HomeApp): String = prefs.getAppRenameLabel(app.packageName).ifBlank { app.label }
+
+    /** Renames an app everywhere; an empty name goes back to the system label. */
+    private fun renameApp(app: HomeApp) =
+        StillDialog.prompt(requireContext(), getString(R.string.rename), shownLabel(app), hint = app.label) { name ->
+            prefs.setAppRenameLabel(app.packageName, name)
+            populateGroups()
+        }
 
     /** A light chevron after a closed group's name, a short line once it is open. */
     private fun withGroupMarker(row: TextView, isOpen: Boolean) {
@@ -534,7 +542,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private fun groupRow(text: String, indent: Boolean, onClick: () -> Unit, onLongClick: () -> Unit): TextView {
         val context = requireContext()
         return TextView(context).apply {
-            setTextAppearance(if (indent) R.style.TextMedium else R.style.TextLarge)
+            setTextAppearance(R.style.TextLarge)
+            if (indent) setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, textSize * prefs.groupAppSizeScale)
             this.text = text
             gravity = prefs.homeAlignment
             layoutParams = LinearLayout.LayoutParams(
@@ -560,7 +569,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         indent: Boolean = false,
         isOpen: Boolean = false,
         onTap: (() -> Unit)? = null,
-        onLongPress: (() -> Unit)? = null,
+        onEdit: () -> Unit,
         onRemove: () -> Unit,
     ): View {
         val context = requireContext()
@@ -569,18 +578,20 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             if (onTap != null) withGroupMarker(this, isOpen)
         }
-        val cross = android.widget.ImageView(context).apply {
-            setImageResource(R.drawable.ic_edit_remove)
+        fun action(icon: Int, description: Int, onClick: () -> Unit) = android.widget.ImageView(context).apply {
+            setImageResource(icon)
             imageTintList = android.content.res.ColorStateList.valueOf(label.currentTextColor)
             alpha = 0.6f
-            contentDescription = getString(R.string.home_edit_remove)
+            contentDescription = getString(description)
             val pad = 12.dpToPx()
             setPadding(pad, pad, pad, pad)
             layoutParams = LinearLayout.LayoutParams(48.dpToPx(), 48.dpToPx()).apply {
                 gravity = android.view.Gravity.CENTER_VERTICAL
             }
-            setOnClickListener { onRemove() }
+            setOnClickListener { onClick() }
         }
+        val pencil = action(R.drawable.ic_edit_pencil, R.string.rename, onEdit)
+        val cross = action(R.drawable.ic_edit_remove, R.string.home_edit_remove, onRemove)
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -588,10 +599,11 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             addView(label)
+            addView(pencil)
             addView(cross)
             if (index != null) tag = index
         }
-        label.setOnTouchListener(EditRowTouch(row, index, onTap, onLongPress))
+        label.setOnTouchListener(EditRowTouch(row, index, onTap))
         jiggle(label)
         return row
     }
@@ -622,27 +634,21 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         private val row: View,
         private val index: Int?,
         private val onTap: (() -> Unit)?,
-        private val onLongPress: (() -> Unit)?,
     ) : View.OnTouchListener {
         private val slop = android.view.ViewConfiguration.get(requireContext()).scaledTouchSlop
         private var downY = 0f
         private var dragging = false
-        private var longPressed = false
-        private val longPress = Runnable { longPressed = true; onLongPress?.invoke() }
 
         override fun onTouch(view: View, event: android.view.MotionEvent): Boolean {
             when (event.actionMasked) {
                 android.view.MotionEvent.ACTION_DOWN -> {
                     downY = event.rawY
                     dragging = false
-                    longPressed = false
-                    if (onLongPress != null) view.postDelayed(longPress, android.view.ViewConfiguration.getLongPressTimeout().toLong())
                     view.parent.requestDisallowInterceptTouchEvent(true)
                 }
                 android.view.MotionEvent.ACTION_MOVE -> {
                     val dy = event.rawY - downY
                     if (!dragging && index != null && kotlin.math.abs(dy) > slop) {
-                        view.removeCallbacks(longPress)
                         if (openGroup != null) {
                             // Member rows sit between the entries; close the group before reordering.
                             openGroup = null
@@ -658,12 +664,10 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                     }
                 }
                 android.view.MotionEvent.ACTION_UP -> {
-                    view.removeCallbacks(longPress)
                     if (dragging) drop()
-                    else if (!longPressed && kotlin.math.abs(event.rawY - downY) <= slop) onTap?.invoke()
+                    else if (kotlin.math.abs(event.rawY - downY) <= slop) onTap?.invoke()
                 }
                 android.view.MotionEvent.ACTION_CANCEL -> {
-                    view.removeCallbacks(longPress)
                     if (dragging) drop()
                 }
             }

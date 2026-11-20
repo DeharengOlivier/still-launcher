@@ -108,6 +108,7 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
             R.id.appThemeText -> showAppThemeMenu(view, showSystem = false)
             R.id.textSizeValue -> showTextSizeDialog()
             R.id.clockSizeValue -> cycleClockSize()
+            R.id.groupAppSizeValue -> cycleGroupAppSize()
             R.id.boldFont -> toggleBoldFont()
 
 
@@ -155,6 +156,7 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         binding.appThemeText.setOnClickListener(this)
         binding.textSizeValue.setOnClickListener(this)
         binding.clockSizeValue.setOnClickListener(this)
+        binding.groupAppSizeValue.setOnClickListener(this)
         binding.boldFont.setOnClickListener(this)
 
         binding.github.setOnClickListener(this)
@@ -390,6 +392,11 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         binding.clockSizeValue.text = formatScale(prefs.clockSizeScale)
     }
 
+    private fun cycleGroupAppSize() {
+        prefs.groupAppSizeScale = app.still.data.ClockSize.next(prefs.groupAppSizeScale)
+        binding.groupAppSizeValue.text = formatScale(prefs.groupAppSizeScale)
+    }
+
     private var pendingTextSizeScale: Float = -1f
 
     private fun pendingOrCurrentTextSizeScale(): Float =
@@ -500,6 +507,7 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
     private fun populateTextSize() {
         binding.textSizeValue.text = formatScale(prefs.textSizeScale)
         binding.clockSizeValue.text = formatScale(prefs.clockSizeScale)
+        binding.groupAppSizeValue.text = formatScale(prefs.groupAppSizeScale)
     }
 
     private fun toggleBoldFont() {

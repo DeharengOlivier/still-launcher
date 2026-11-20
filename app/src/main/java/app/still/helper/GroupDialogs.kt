@@ -10,30 +10,11 @@ import app.still.data.HomeApp
 import app.still.data.Prefs
 
 /** Asks for a group name; [onName] only receives a non-blank name. */
-fun askGroupName(context: Context, title: String, initial: String, onName: (String) -> Unit) {
-    val input = EditText(context).apply {
-        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-        setText(initial)
-        setSelectAllOnFocus(true)
+fun askGroupName(context: Context, title: String, initial: String, onName: (String) -> Unit) =
+    StillDialog.prompt(context, title, initial) { name ->
+        if (name.isEmpty()) context.showToast(context.getString(R.string.group_name_empty))
+        else onName(name)
     }
-    val frame = FrameLayout(context).apply {
-        val side = 24.dpToPx()
-        setPadding(side, 8.dpToPx(), side, 0)
-        addView(input)
-    }
-    AlertDialog.Builder(context)
-        .setTitle(title)
-        .setView(frame)
-        .setPositiveButton(android.R.string.ok) { _, _ ->
-            val name = input.text.toString().trim()
-            if (name.isEmpty()) context.showToast(context.getString(R.string.group_name_empty))
-            else onName(name)
-        }
-        .setNegativeButton(android.R.string.cancel, null)
-        .show()
-    input.requestFocus()
-    input.showKeyboard()
-}
 
 /** Lets the user put [app] in an existing group or in a new one. */
 fun showAddToGroup(context: Context, prefs: Prefs, app: HomeApp) {

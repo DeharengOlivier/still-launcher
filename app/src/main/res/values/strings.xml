@@ -141,4 +141,5 @@
     <string name="home_edit_done">Done</string>
     <string name="group_delete_confirm">Delete the group %1$s? Its apps stay in the app list.</string>
     <string name="home_edit_remove">Remove</string>
+    <string name="group_app_size">Size of apps in groups</string>
 </resources>

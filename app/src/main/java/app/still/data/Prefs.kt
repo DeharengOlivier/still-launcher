@@ -31,6 +31,7 @@ class Prefs(private val context: Context) {
     private val HOME_LAYOUT = "HOME_LAYOUT"
     private val HOME_LAYOUT_BACKUP = "HOME_LAYOUT_BACKUP"
     private val CLOCK_SIZE_SCALE = "CLOCK_SIZE_SCALE"
+    private val GROUP_APP_SIZE_SCALE = "GROUP_APP_SIZE_SCALE"
     private val SUSPENDED_ACCESSIBILITY_SERVICES = "SUSPENDED_ACCESSIBILITY_SERVICES"
     private val SHOW_HINT_COUNTER = "SHOW_HINT_COUNTER"
     private val APP_THEME = "APP_THEME"
@@ -236,6 +237,11 @@ class Prefs(private val context: Context) {
     var clockSizeScale: Float
         get() = prefs.getFloat(CLOCK_SIZE_SCALE, 1.0f)
         set(value) = prefs.edit { putFloat(CLOCK_SIZE_SCALE, value) }
+
+    /** Size of apps listed inside an open group, relative to top-level home rows. */
+    var groupAppSizeScale: Float
+        get() = prefs.getFloat(GROUP_APP_SIZE_SCALE, 0.8f)
+        set(value) = prefs.edit { putFloat(GROUP_APP_SIZE_SCALE, value) }
 
     /** The arrangement replaced by the last adb import, encoded, so it can be put back. */
     var homeLayoutBackup: String?
