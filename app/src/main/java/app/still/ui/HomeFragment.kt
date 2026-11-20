@@ -232,6 +232,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.homeScroll.onSwipeLeft = { showAppList(Constants.FLAG_LAUNCH_APP) }
         binding.homeScroll.onLongPressEmpty = { setEditing(true) }
         binding.homeScroll.onPullDown = { if (!editing) pullDown() }
+        binding.root.viewTreeObserver.addOnWindowFocusChangeListener(onShadeClosed)
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, exitEditOnBack)
         // Keep the list below the clock whatever the clock size, so app names never cover the time.
         binding.dateTimeLayout.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> placeListBelowClock() }
@@ -459,7 +460,22 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         if (!prefs.showStatusBar && !statusBarRevealed) {
             statusBarRevealed = true
             showStatusBar()
-        } else expandNotificationDrawer(requireContext())
+        } else {
+            shadeOpened = true
+            expandNotificationDrawer(requireContext())
+        }
+    }
+
+    /** Set when this screen opened the shade, so closing it can hide the status bar again. */
+    private var shadeOpened = false
+
+    /** Home gets window focus back when the shade closes: start over with the bar hidden. */
+    private val onShadeClosed = android.view.ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
+        if (hasFocus && shadeOpened) {
+            shadeOpened = false
+            statusBarRevealed = false
+            if (!prefs.showStatusBar) hideStatusBar()
+        }
     }
 
     private fun launchHomeApp(app: HomeApp) =
@@ -938,6 +954,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     }
 
     override fun onDestroyView() {
+        binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(onShadeClosed)
         super.onDestroyView()
         _binding = null
     }
