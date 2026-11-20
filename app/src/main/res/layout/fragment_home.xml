@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
@@ -73,15 +74,24 @@
         tools:visibility="visible" />
 
     <!-- Home apps-->
+    <!-- Scrolling home list; its top padding is set in code to sit below the clock. -->
+    <app.olauncher.listener.HomeScrollView
+        android:id="@+id/homeScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="true"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
     <LinearLayout
         android:id="@+id/homeAppsLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
+        android:layout_height="wrap_content"
+        android:gravity="top"
         android:orientation="vertical"
         android:paddingHorizontal="24dp"
-        android:paddingTop="112dp"
-        android:paddingBottom="48dp">
+        android:paddingBottom="16dp">
 
         <TextView
             android:id="@+id/homeApp1"
@@ -179,7 +189,16 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
+        <!-- App groups, filled in code by HomeFragment.populateGroups -->
+        <LinearLayout
+            android:id="@+id/groupsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
     </LinearLayout>
+
+    </app.olauncher.listener.HomeScrollView>
 
     <TextView
         android:id="@+id/firstRunTips"
@@ -207,4 +226,32 @@
         android:maxLines="1"
         android:text="@string/set_as_default_launcher_u"
         android:visibility="gone" />
+
+    <!-- Discreet shortcuts: dialer bottom-left, camera bottom-right. -->
+    <ImageView
+        android:id="@+id/cornerPhone"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="32dp"
+        android:alpha="0.35"
+        android:contentDescription="@string/corner_phone"
+        android:padding="12dp"
+        android:src="@drawable/ic_corner_phone"
+        app:tint="?attr/primaryColor" />
+
+    <ImageView
+        android:id="@+id/cornerCamera"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="32dp"
+        android:alpha="0.35"
+        android:contentDescription="@string/corner_camera"
+        android:padding="12dp"
+        android:src="@drawable/ic_corner_camera"
+        app:tint="?attr/primaryColor" />
+
 </FrameLayout>

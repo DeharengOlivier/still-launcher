@@ -14,11 +14,11 @@ android {
     }
 
     defaultConfig {
-        applicationId "app.olauncher"
+        applicationId "app.stilllauncher"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 117
-        versionName "v6.11.5"
+        versionCode 128
+        versionName "0.7.3-still"
 
         resourceConfigurations += ["en", "ar", "cs", "da", "de", "el", "es-rES", "es-rUS", "fa", "fi", "fr", "iw", "hi", "hr", "hu", "in", "it", "ja", "ko", "nb", "nl", "pl", "pt-rBR", "ro", "ru-rRU", "sv", "th", "tr", "uk", "vi", "zh", "zh-rTW"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -69,4 +69,6 @@ dependencies {
     implementation libs.material
 
     testImplementation libs.junit
+    // Real org.json on the JVM; the Android stub throws in unit tests.
+    testImplementation "org.json:json:20250517"
 }

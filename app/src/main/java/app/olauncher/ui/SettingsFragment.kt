@@ -39,9 +39,7 @@ import app.olauncher.helper.isOlauncherDefault
 import app.olauncher.helper.isTablet
 import app.olauncher.helper.openAppInfo
 import app.olauncher.helper.openUrl
-import app.olauncher.helper.rateApp
 import app.olauncher.helper.setPlainWallpaper
-import app.olauncher.helper.shareApp
 import app.olauncher.helper.OlDialog
 import app.olauncher.helper.showPopupMenu
 import app.olauncher.helper.showStatusBar
@@ -57,7 +55,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
-    private val showPentastic = System.currentTimeMillis() % 2 == 0L
     private var dialog: OlDialog? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -78,7 +75,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         checkAdminPermission()
 
         binding.homeAppsNum.text = prefs.homeAppsNum.toString()
-        populateProMessage()
         populateKeyboardText()
         populateScreenTimeOnOff()
         populateLockSettings()
@@ -91,19 +87,14 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         populateAlignment()
         populateStatusBar()
         populateDateTime()
-        populateSwipeApps()
-        populateActionHints()
         initClickListeners()
         initObservers()
 
-        if (showPentastic)
-            binding.footer.text = getText(R.string.new_app_minimal_todo_lists)
     }
 
     override fun onClick(view: View) {
         when (view.id) {
             R.id.olauncherHiddenApps -> showHiddenApps()
-            R.id.moreFeatures -> viewModel.showDialog.postValue(Constants.Dialog.PRO_MESSAGE)
             R.id.screenTimeOnOff -> viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
             R.id.appInfo -> openAppInfo(requireContext(), Process.myUserHandle(), BuildConfig.APPLICATION_ID)
             R.id.setLauncher -> viewModel.resetLauncherLiveData.call()
@@ -119,30 +110,13 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
             R.id.dateTime -> showDateTimeMenu(view)
             R.id.appThemeText -> showAppThemeMenu(view, showSystem = false)
             R.id.textSizeValue -> showTextSizeDialog()
+            R.id.clockSizeValue -> cycleClockSize()
             R.id.boldFont -> toggleBoldFont()
 
-            R.id.swipeLeftApp -> showAppListIfEnabled(Constants.FLAG_SET_SWIPE_LEFT_APP)
-            R.id.swipeRightApp -> showAppListIfEnabled(Constants.FLAG_SET_SWIPE_RIGHT_APP)
 
-            R.id.aboutOlauncher -> {
-                prefs.aboutClicked = true
-                requireContext().openUrl(Constants.URL_ABOUT_OLAUNCHER)
-            }
 
-            R.id.share -> requireActivity().shareApp()
-            R.id.rate -> {
-                prefs.rateClicked = true
-                requireActivity().rateApp()
-            }
 
-            R.id.twitter -> requireContext().openUrl(Constants.URL_TWITTER_TANUJ)
             R.id.github -> requireContext().openUrl(Constants.URL_OLAUNCHER_GITHUB)
-            R.id.privacy -> requireContext().openUrl(Constants.URL_OLAUNCHER_PRIVACY)
-            R.id.footer -> {
-                requireContext().openUrl(
-                    if (showPentastic) Constants.URL_PENTASTIC else Constants.URL_NTS
-                )
-            }
         }
     }
 
@@ -156,8 +130,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
 
             R.id.dailyWallpaper -> removeWallpaper()
             R.id.appThemeText -> showAppThemeMenu(view, showSystem = true)
-            R.id.swipeLeftApp -> toggleSwipeLeft()
-            R.id.swipeRightApp -> toggleSwipeRight()
             R.id.toggleLock -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 // Turning the service off needs no disclosure, turning it on does
                 if (isAccessServiceEnabled(requireContext()))
@@ -173,8 +145,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         binding.olauncherHiddenApps.setOnClickListener(this)
         binding.appInfo.setOnClickListener(this)
         binding.setLauncher.setOnClickListener(this)
-        binding.aboutOlauncher.setOnClickListener(this)
-        binding.moreFeatures.setOnClickListener(this)
         binding.autoShowKeyboard.setOnClickListener(this)
         binding.toggleLock.setOnClickListener(this)
         // Home button for recents feature disabled
@@ -186,24 +156,16 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         binding.alignment.setOnClickListener(this)
         binding.statusBar.setOnClickListener(this)
         binding.dateTime.setOnClickListener(this)
-        binding.swipeLeftApp.setOnClickListener(this)
-        binding.swipeRightApp.setOnClickListener(this)
         binding.appThemeText.setOnClickListener(this)
         binding.textSizeValue.setOnClickListener(this)
+        binding.clockSizeValue.setOnClickListener(this)
         binding.boldFont.setOnClickListener(this)
 
-        binding.share.setOnClickListener(this)
-        binding.rate.setOnClickListener(this)
-        binding.twitter.setOnClickListener(this)
         binding.github.setOnClickListener(this)
-        binding.privacy.setOnClickListener(this)
-        binding.footer.setOnClickListener(this)
 
         binding.dailyWallpaper.setOnLongClickListener(this)
         binding.alignment.setOnLongClickListener(this)
         binding.appThemeText.setOnLongClickListener(this)
-        binding.swipeLeftApp.setOnLongClickListener(this)
-        binding.swipeRightApp.setOnLongClickListener(this)
         binding.toggleLock.setOnLongClickListener(this)
     }
 
@@ -220,9 +182,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         }
         viewModel.homeAppAlignment.observe(viewLifecycleOwner) {
             populateAlignment()
-        }
-        viewModel.updateSwipeApps.observe(viewLifecycleOwner) {
-            populateSwipeApps()
         }
     }
 
@@ -316,28 +275,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
                 }
             }
         )
-    }
-
-    private fun toggleSwipeLeft() {
-        prefs.swipeLeftEnabled = !prefs.swipeLeftEnabled
-        if (prefs.swipeLeftEnabled) {
-            binding.swipeLeftApp.setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-            requireContext().showToast(getString(R.string.swipe_left_app_enabled))
-        } else {
-            binding.swipeLeftApp.setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            requireContext().showToast(getString(R.string.swipe_left_app_disabled))
-        }
-    }
-
-    private fun toggleSwipeRight() {
-        prefs.swipeRightEnabled = !prefs.swipeRightEnabled
-        if (prefs.swipeRightEnabled) {
-            binding.swipeRightApp.setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-            requireContext().showToast(getString(R.string.swipe_right_app_enabled))
-        } else {
-            binding.swipeRightApp.setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            requireContext().showToast(getString(R.string.swipe_right_app_disabled))
-        }
     }
 
     private fun toggleStatusBar() {
@@ -470,6 +407,11 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         viewModel.refreshHome(true)
     }
 
+    private fun cycleClockSize() {
+        prefs.clockSizeScale = app.olauncher.data.ClockSize.next(prefs.clockSizeScale)
+        binding.clockSizeValue.text = formatScale(prefs.clockSizeScale)
+    }
+
     private var pendingTextSizeScale: Float = -1f
 
     private fun pendingOrCurrentTextSizeScale(): Float =
@@ -579,6 +521,7 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
 
     private fun populateTextSize() {
         binding.textSizeValue.text = formatScale(prefs.textSizeScale)
+        binding.clockSizeValue.text = formatScale(prefs.clockSizeScale)
     }
 
     private fun toggleBoldFont() {
@@ -657,15 +600,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         }
     }
 
-    private fun populateSwipeApps() {
-        binding.swipeLeftApp.text = prefs.appNameSwipeLeft
-        binding.swipeRightApp.text = prefs.appNameSwipeRight
-        if (!prefs.swipeLeftEnabled)
-            binding.swipeLeftApp.setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        if (!prefs.swipeRightEnabled)
-            binding.swipeRightApp.setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-    }
-
 //    private fun populateDigitalWellbeing() {
 //        binding.digitalWellbeing.isVisible = requireContext().isPackageInstalled(Constants.DIGITAL_WELLBEING_PACKAGE_NAME).not()
 //                && requireContext().isPackageInstalled(Constants.DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME).not()
@@ -673,34 +607,11 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
 //    }
 
     private fun showAppListIfEnabled(flag: Int) {
-        if ((flag == Constants.FLAG_SET_SWIPE_LEFT_APP) and !prefs.swipeLeftEnabled) {
-            requireContext().showToast(getString(R.string.long_press_to_enable))
-            return
-        }
-        if ((flag == Constants.FLAG_SET_SWIPE_RIGHT_APP) and !prefs.swipeRightEnabled) {
-            requireContext().showToast(getString(R.string.long_press_to_enable))
-            return
-        }
         viewModel.getAppList(true)
         findNavController().navigate(
             R.id.action_settingsFragment_to_appListFragment,
             bundleOf(Constants.Key.FLAG to flag)
         )
-    }
-
-    private fun populateActionHints() {
-        if (prefs.aboutClicked.not())
-            binding.aboutOlauncher.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_info, 0)
-        if (viewModel.isOlauncherDefault.value != true) return
-        if (prefs.rateClicked.not() && prefs.toShowHintCounter > Constants.HINT_RATE_US && prefs.toShowHintCounter < Constants.HINT_RATE_US + 100)
-            binding.rate.setCompoundDrawablesWithIntrinsicBounds(0, android.R.drawable.arrow_down_float, 0, 0)
-    }
-
-    private fun populateProMessage() {
-        if (prefs.proMessageShown.not() && prefs.userState == Constants.UserState.SHARE) {
-            prefs.proMessageShown = true
-            viewModel.showDialog.postValue(Constants.Dialog.PRO_MESSAGE)
-        }
     }
 
     override fun onDestroyView() {

@@ -15,6 +15,11 @@
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
+    <!--Used only to switch accessibility services off around protected (banking) apps.
+        Only `adb shell pm grant` can give it; without it the feature shows a toast and does nothing.-->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
     <!--Used for Private Space support on Android 15+-->
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
 
@@ -101,6 +106,17 @@
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
         </service>
+
+        <!-- Home screen import from a computer. DUMP is held by the adb shell and cannot be
+             granted to installed apps, so only adb can rewrite the home screen this way. -->
+        <receiver
+            android:name=".helper.HomeLayoutImportReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="app.stilllauncher.IMPORT_HOME_LAYOUT" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

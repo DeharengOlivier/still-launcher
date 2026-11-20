@@ -79,6 +79,28 @@ class AppDrawerFragment : BaseFragment() {
         initClickListeners()
     }
 
+    /**
+     * The app list sits to the right of the home screen, so a left-to-right swipe goes back home.
+     * Only watches touches (never intercepts), so taps, long presses and scrolling are unchanged.
+     * Only for the plain app list, not when picking an app for a setting.
+     */
+    private fun backToHomeSwipe() = object : RecyclerView.SimpleOnItemTouchListener() {
+        private val threshold = 60 * resources.displayMetrics.density
+        private var downX = 0f
+        private var downY = 0f
+
+        override fun onInterceptTouchEvent(rv: RecyclerView, e: android.view.MotionEvent): Boolean {
+            when (e.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> { downX = e.x; downY = e.y }
+                android.view.MotionEvent.ACTION_UP ->
+                    if (flag == Constants.FLAG_LAUNCH_APP &&
+                        app.olauncher.listener.HomeSwipe.isBackToHome(e.x - downX, e.y - downY, threshold)
+                    ) findNavController().popBackStack()
+            }
+            return false
+        }
+    }
+
     private fun initViews() {
         if (flag == Constants.FLAG_HIDDEN_APPS)
             binding.search.queryHint = getString(R.string.hidden_apps)
@@ -106,7 +128,6 @@ class AppDrawerFragment : BaseFragment() {
 
             override fun onQueryTextChange(newText: String): Boolean {
                 try {
-                    adapter.allowAutoLaunch = !isSearchComposing()
                     adapter.filter.filter(newText)
                     binding.appRename.visibility =
                         if (canRename && newText.isNotBlank()) View.VISIBLE else View.GONE
@@ -117,15 +138,6 @@ class AppDrawerFragment : BaseFragment() {
                 return false
             }
         })
-    }
-
-    private fun isSearchComposing(): Boolean {
-        val text = searchTextView?.text
-        if (text !is Spannable) return false
-        val start = BaseInputConnection.getComposingSpanStart(text)
-        val end = BaseInputConnection.getComposingSpanEnd(text)
-        if (start !in 0 until end) return false
-        return isCjkKeyboard()
     }
 
     private fun isCjkKeyboard(): Boolean {
@@ -254,6 +266,7 @@ class AppDrawerFragment : BaseFragment() {
         binding.recyclerView.adapter = adapter
         binding.recyclerView.addOnScrollListener(getRecyclerViewOnScrollListener())
         binding.recyclerView.itemAnimator = null
+        binding.recyclerView.addOnItemTouchListener(backToHomeSwipe())
         if (requireContext().isEinkDisplay())
             binding.recyclerView.overScrollMode = View.OVER_SCROLL_NEVER
         else if (requireContext().isSystemAnimationsDisabled().not())

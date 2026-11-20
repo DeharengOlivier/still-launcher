@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Horizontal page slide between the home screen (left) and the app list (right). -->
+<translate xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="280"
+    android:fromXDelta="-100%"
+    android:interpolator="@android:anim/decelerate_interpolator"
+    android:toXDelta="0%" />

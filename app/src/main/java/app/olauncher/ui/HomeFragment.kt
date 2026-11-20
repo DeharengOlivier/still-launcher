@@ -28,7 +28,13 @@ import app.olauncher.MainViewModel
 import app.olauncher.R
 import app.olauncher.data.AppModel
 import app.olauncher.data.Constants
+import app.olauncher.data.HomeApp
+import app.olauncher.data.HomeEntry
+import app.olauncher.data.HomeLayout
 import app.olauncher.data.Prefs
+import app.olauncher.helper.askGroupName
+import android.app.AlertDialog
+import android.widget.LinearLayout
 import app.olauncher.databinding.FragmentHomeBinding
 import app.olauncher.helper.appUsagePermissionGranted
 import app.olauncher.helper.dpToPx
@@ -79,6 +85,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
     override fun onResume() {
         super.onResume()
+        // Always come back to the list's resting position.
+        binding.homeScroll.scrollTo(0, 0)
         populateHomeScreen(false)
         viewModel.isOlauncherDefault()
         if (prefs.showStatusBar) showStatusBar()
@@ -212,6 +220,10 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private fun initSwipeTouchListener() {
         val context = requireContext()
         binding.mainLayout.setOnTouchListener(getSwipeGestureListener(context))
+        binding.homeScroll.onSwipeLeft = { showAppList(Constants.FLAG_LAUNCH_APP) }
+        binding.homeScroll.onLongPressEmpty = { showHomeMenu() }
+        // Keep the list below the clock whatever the clock size, so app names never cover the time.
+        binding.dateTimeLayout.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> placeListBelowClock() }
         binding.homeApp1.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp1))
         binding.homeApp2.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp2))
         binding.homeApp3.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp3))
@@ -234,6 +246,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.setDefaultLauncher.setOnLongClickListener(this)
         binding.tvScreenTime.setOnClickListener(this)
         binding.tvScreenTime.setOnLongClickListener(this)
+        binding.cornerPhone.setOnClickListener { openDialerApp(requireContext()) }
+        binding.cornerCamera.setOnClickListener { openCameraApp(requireContext()) }
 
         // These fire only on d-pad/keyboard events; touch is consumed by ViewSwipeTouchListener
         binding.homeApp1.setOnClickListener(this)
@@ -320,109 +334,173 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             populateScreenTime()
 
-        val homeAppsNum = prefs.homeAppsNum
-        if (homeAppsNum == 0) return
+        applyClockSize()
+        carryOverFixedSlots()
+        hideHomeApps()
+        populateGroups()
+    }
 
-        binding.homeApp1.visibility = View.VISIBLE
-        if (!setHomeAppText(binding.homeApp1, prefs.appName1, prefs.appPackage1, prefs.appUser1, prefs.isShortcut1, prefs.shortcutId1)) {
-            prefs.appName1 = ""
-            prefs.appPackage1 = ""
+    private fun placeListBelowClock() {
+        val top = if (binding.dateTimeLayout.isVisible) binding.dateTimeLayout.bottom + 16.dpToPx() else 56.dpToPx()
+        // Bottom band reserved for the phone and camera icons, so rows never slide under them.
+        val bottom = 96.dpToPx()
+        if (binding.homeScroll.paddingTop != top || binding.homeScroll.paddingBottom != bottom)
+            binding.homeScroll.setPadding(0, top, 0, bottom)
+    }
+
+    /** The clock ignores the text size setting and uses its own multiplier. */
+    private fun applyClockSize() {
+        val base = resources.getDimension(R.dimen.time_size) / resources.displayMetrics.scaledDensity
+        binding.clock.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, base * prefs.clockSizeScale)
+    }
+
+    /** Once, moves the apps of the eight fixed Olauncher slots into the unlimited home list. */
+    private fun carryOverFixedSlots() {
+        if (prefs.hasHomeLayout) return
+        val slots = (1..prefs.homeAppsNum).mapNotNull { slot ->
+            val packageName = prefs.getAppPackage(slot)
+            if (packageName.isBlank() || prefs.getIsShortcut(slot)) null
+            else HomeApp(prefs.getAppName(slot), packageName, prefs.getAppActivityClassName(slot), prefs.getAppUser(slot))
         }
-        if (homeAppsNum == 1) return
+        prefs.homeLayout = HomeLayout.fromSlots(slots)
+    }
 
-        binding.homeApp2.visibility = View.VISIBLE
-        if (!setHomeAppText(binding.homeApp2, prefs.appName2, prefs.appPackage2, prefs.appUser2, prefs.isShortcut2, prefs.shortcutId2)) {
-            prefs.appName2 = ""
-            prefs.appPackage2 = ""
-        }
-        if (homeAppsNum == 2) return
+    /** The group whose apps are listed under it; only one is open at a time. */
+    private var openGroup: String? = null
 
-        binding.homeApp3.visibility = View.VISIBLE
-        if (!setHomeAppText(binding.homeApp3, prefs.appName3, prefs.appPackage3, prefs.appUser3, prefs.isShortcut3, prefs.shortcutId3)) {
-            prefs.appName3 = ""
-            prefs.appPackage3 = ""
-        }
-        if (homeAppsNum == 3) return
+    private fun populateGroups() {
+        val context = requireContext()
+        val stored = prefs.homeLayout
+        val layout = stored.retainInstalled { isPackageInstalled(context, it.packageName, it.user) }
+        if (layout != stored) prefs.homeLayout = layout
+        if (openGroup !in layout.groupNames) openGroup = null
 
-        binding.homeApp4.visibility = View.VISIBLE
-        if (!setHomeAppText(binding.homeApp4, prefs.appName4, prefs.appPackage4, prefs.appUser4, prefs.isShortcut4, prefs.shortcutId4)) {
-            prefs.appName4 = ""
-            prefs.appPackage4 = ""
-        }
-        if (homeAppsNum == 4) return
-
-        binding.homeApp5.visibility = View.VISIBLE
-        if (!setHomeAppText(binding.homeApp5, prefs.appName5, prefs.appPackage5, prefs.appUser5, prefs.isShortcut5, prefs.shortcutId5)) {
-            prefs.appName5 = ""
-            prefs.appPackage5 = ""
-        }
-        if (homeAppsNum == 5) return
-
-        binding.homeApp6.visibility = View.VISIBLE
-        if (!setHomeAppText(binding.homeApp6, prefs.appName6, prefs.appPackage6, prefs.appUser6, prefs.isShortcut6, prefs.shortcutId6)) {
-            prefs.appName6 = ""
-            prefs.appPackage6 = ""
-        }
-        if (homeAppsNum == 6) return
-
-        binding.homeApp7.visibility = View.VISIBLE
-        if (!setHomeAppText(binding.homeApp7, prefs.appName7, prefs.appPackage7, prefs.appUser7, prefs.isShortcut7, prefs.shortcutId7)) {
-            prefs.appName7 = ""
-            prefs.appPackage7 = ""
-        }
-        if (homeAppsNum == 7) return
-
-        binding.homeApp8.visibility = View.VISIBLE
-        if (!setHomeAppText(binding.homeApp8, prefs.appName8, prefs.appPackage8, prefs.appUser8, prefs.isShortcut8, prefs.shortcutId8)) {
-            prefs.appName8 = ""
-            prefs.appPackage8 = ""
+        val container = binding.groupsLayout
+        container.removeAllViews()
+        layout.entries.forEachIndexed { index, entry ->
+            when (entry) {
+                is HomeEntry.App -> container.addView(groupRow(entry.app.label, indent = false,
+                    onClick = { launchHomeApp(entry.app) },
+                    onLongClick = { showHomeAppMenu(index, entry.app) }
+                ))
+                is HomeEntry.Group -> {
+                    val group = entry
+                    val isOpen = group.name == openGroup
+                    container.addView(groupRow(group.name + if (isOpen) "  −" else "  +", indent = false,
+                        onClick = {
+                            openGroup = if (isOpen) null else group.name
+                            populateGroups()
+                        },
+                        onLongClick = { showGroupMenu(index, group.name) }
+                    ))
+                    if (isOpen) group.apps.forEach { app ->
+                        container.addView(groupRow(app.label, indent = true,
+                            onClick = { launchHomeApp(app) },
+                            onLongClick = { confirmRemoveFromGroup(group.name, app) }
+                        ))
+                    }
+                }
+            }
         }
     }
 
-    private fun setHomeAppText(
-        textView: TextView,
-        appName: String,
-        packageName: String,
-        userString: String,
-        isShortcut: Boolean,
-        shortcutId: String?,
-    ): Boolean {
-        // Get user handle for the app/shortcut
-        val userHandle = getUserHandleFromString(requireContext(), userString)
+    private fun launchHomeApp(app: HomeApp) =
+        launchApp(app.label, app.packageName, app.activityClassName, app.user)
 
-        // If it's a shortcut, verify it still exists
-        if (isShortcut) {
-            val launcherApps = requireContext().getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+    private fun saveAndRefresh(layout: HomeLayout) {
+        prefs.homeLayout = layout
+        populateGroups()
+    }
 
-            // Query for the specific shortcut
-            val query = LauncherApps.ShortcutQuery().apply {
-                setPackage(packageName)
-                setQueryFlags(LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED)
-            }
+    private fun showHomeAppMenu(index: Int, app: HomeApp) {
+        val actions = listOf(
+            getString(R.string.home_remove) to { saveAndRefresh(prefs.homeLayout.removeApp(app)) },
+            getString(R.string.home_move_up) to { saveAndRefresh(prefs.homeLayout.move(index, -1)) },
+            getString(R.string.home_move_down) to { saveAndRefresh(prefs.homeLayout.move(index, 1)) },
+        )
+        AlertDialog.Builder(requireContext())
+            .setTitle(app.label)
+            .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
+            .show()
+    }
 
-            try {
-                val shortcuts = launcherApps.getShortcuts(query, userHandle)
-                // Check if our shortcut still exists
-                if (shortcuts?.any { it.id == shortcutId } == true) {
-                    textView.text = appName
-                    return true
+    /** Long press on empty home space: create a group or open settings. */
+    private fun showHomeMenu() {
+        val context = requireContext()
+        val actions = listOf(
+            getString(R.string.home_new_group) to {
+                askGroupName(context, getString(R.string.home_new_group), "") { name ->
+                    val before = prefs.homeLayout
+                    val after = before.createGroup(name)
+                    if (after == before) context.showToast(getString(R.string.group_name_taken))
+                    else saveAndRefresh(after)
                 }
-                textView.text = ""
-                return false
-            } catch (e: Exception) {
-                e.printStackTrace()
-                textView.text = ""
-                return false
-            }
-        }
+            },
+            getString(R.string.home_settings) to {
+                try {
+                    findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
+                    viewModel.firstOpen(false)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            },
+        )
+        AlertDialog.Builder(context)
+            .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
+            .show()
+    }
 
-        // Regular app check
-        if (isPackageInstalled(requireContext(), packageName, userString)) {
-            textView.text = appName
-            return true
+    private fun groupRow(text: String, indent: Boolean, onClick: () -> Unit, onLongClick: () -> Unit): TextView {
+        val context = requireContext()
+        return TextView(context).apply {
+            setTextAppearance(if (indent) R.style.TextMedium else R.style.TextLarge)
+            this.text = text
+            gravity = prefs.homeAlignment
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            val vertical = resources.getDimensionPixelSize(R.dimen.home_app_padding_vertical)
+            setPadding(if (indent) 24.dpToPx() else 0, vertical, 0, vertical)
+            setOnTouchListener(object : ViewSwipeTouchListener(context, this) {
+                override fun onClick(view: View) = onClick()
+                override fun onLongClick(view: View) = onLongClick()
+            })
         }
-        textView.text = ""
-        return false
+    }
+
+    private fun showGroupMenu(index: Int, groupName: String) {
+        val context = requireContext()
+        val actions = listOf(
+            getString(R.string.group_rename) to {
+                askGroupName(context, getString(R.string.group_rename), groupName) { newName ->
+                    val before = prefs.homeLayout
+                    val after = before.renameGroup(groupName, newName)
+                    if (after == before) context.showToast(getString(R.string.group_name_taken))
+                    else {
+                        if (openGroup == groupName) openGroup = newName.trim()
+                        saveAndRefresh(after)
+                    }
+                }
+            },
+            getString(R.string.group_delete) to { saveAndRefresh(prefs.homeLayout.deleteGroup(groupName)) },
+            getString(R.string.home_move_up) to { saveAndRefresh(prefs.homeLayout.move(index, -1)) },
+            getString(R.string.home_move_down) to { saveAndRefresh(prefs.homeLayout.move(index, 1)) },
+        )
+        AlertDialog.Builder(context)
+            .setTitle(groupName)
+            .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
+            .show()
+    }
+
+    private fun confirmRemoveFromGroup(groupName: String, app: HomeApp) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(app.label)
+            .setItems(arrayOf(getString(R.string.group_remove_app, groupName))) { _, _ ->
+                prefs.homeLayout = prefs.homeLayout.removeFromGroup(groupName, app)
+                populateGroups()
+            }
+            .show()
     }
 
     private fun hideHomeApps() {
@@ -504,32 +582,6 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             shortcutId = prefs.getShortcutId(location),
             isShortcut = prefs.getIsShortcut(location),
             userString = prefs.getAppUser(location)
-        )
-    }
-
-    private fun openSwipeRightApp() {
-        if (!prefs.swipeRightEnabled) return
-        launchAppOrShortcut(
-            appName = prefs.appNameSwipeRight,
-            packageName = prefs.appPackageSwipeRight,
-            activityClassName = prefs.appActivityClassNameRight,
-            shortcutId = prefs.shortcutIdSwipeRight,
-            isShortcut = prefs.isShortcutSwipeRight,
-            userString = prefs.appUserSwipeRight,
-            fallback = { openDialerApp(requireContext()) }
-        )
-    }
-
-    private fun openSwipeLeftApp() {
-        if (!prefs.swipeLeftEnabled) return
-        launchAppOrShortcut(
-            appName = prefs.appNameSwipeLeft,
-            packageName = prefs.appPackageSwipeLeft,
-            activityClassName = prefs.appActivityClassNameSwipeLeft,
-            shortcutId = prefs.shortcutIdSwipeLeft,
-            isShortcut = prefs.isShortcutSwipeLeft,
-            userString = prefs.appUserSwipeLeft,
-            fallback = { openCameraApp(requireContext()) }
         )
     }
 
@@ -640,18 +692,10 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
     private fun getSwipeGestureListener(context: Context): View.OnTouchListener {
         return object : OnSwipeTouchListener(context) {
+
+
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                openSwipeLeftApp()
-            }
-
-            override fun onSwipeRight() {
-                super.onSwipeRight()
-                openSwipeRightApp()
-            }
-
-            override fun onSwipeUp() {
-                super.onSwipeUp()
                 showAppList(Constants.FLAG_LAUNCH_APP)
             }
 
@@ -662,12 +706,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
             override fun onLongClick() {
                 super.onLongClick()
-                try {
-                    findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-                    viewModel.firstOpen(false)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                showHomeMenu()
             }
 
             override fun onDoubleClick() {
@@ -688,18 +727,10 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
     private fun getViewSwipeTouchListener(context: Context, view: View): View.OnTouchListener {
         return object : ViewSwipeTouchListener(context, view) {
+
+
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                openSwipeLeftApp()
-            }
-
-            override fun onSwipeRight() {
-                super.onSwipeRight()
-                openSwipeRightApp()
-            }
-
-            override fun onSwipeUp() {
-                super.onSwipeUp()
                 showAppList(Constants.FLAG_LAUNCH_APP)
             }
 

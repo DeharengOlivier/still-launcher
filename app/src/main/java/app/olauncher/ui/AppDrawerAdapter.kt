@@ -18,6 +18,11 @@ import androidx.recyclerview.widget.RecyclerView
 import app.olauncher.R
 import app.olauncher.data.AppModel
 import app.olauncher.data.Constants
+import app.olauncher.data.Prefs
+import app.olauncher.data.HomeApp
+import app.olauncher.helper.showAddToGroup
+import app.olauncher.helper.showToast
+import android.app.AlertDialog
 import app.olauncher.databinding.AdapterAppDrawerBinding
 import app.olauncher.databinding.AdapterPrivateSpaceHeaderBinding
 import app.olauncher.helper.appLabelMatches
@@ -59,10 +64,6 @@ class AppDrawerAdapter(
         }
     }
 
-    private var autoLaunch = true
-    private var isBangSearch = false
-    private var autoLaunchedQuery: String? = null
-    var allowAutoLaunch = true
     private val appFilter = createAppFilter()
     private val myUserHandle = android.os.Process.myUserHandle()
 
@@ -131,8 +132,6 @@ class AppDrawerAdapter(
     private fun createAppFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(charSearch: CharSequence?): FilterResults {
-                isBangSearch = charSearch?.startsWith("!") ?: false
-                autoLaunch = allowAutoLaunch && (charSearch?.startsWith(" ")?.not() ?: true)
 
                 val appFilteredList = (if (charSearch.isNullOrBlank()) appsList
                 else appsList.filter { app ->
@@ -149,33 +148,10 @@ class AppDrawerAdapter(
                 results?.values?.let {
                     val items = it as MutableList<AppModel>
                     appFilteredList = items
-                    submitList(appFilteredList) {
-                        autoLaunch(constraint?.toString())
-                    }
+                    // Search only filters: an app opens when it is tapped, never by itself.
+                    submitList(appFilteredList)
                 }
             }
-        }
-    }
-
-    private fun autoLaunch(query: String?) {
-        // App list refreshes re-run the current query, so launch only once until it changes
-        if (query == autoLaunchedQuery) return
-        autoLaunchedQuery = null
-        try {
-            if (itemCount == 1
-                && autoLaunch
-                && isBangSearch.not()
-                && flag == Constants.FLAG_LAUNCH_APP
-                && appFilteredList.isNotEmpty()
-                && appFilteredList[0] !is AppModel.PrivateSpaceHeader
-                // Skip the empty bottom-padding item, left alone when the app list is empty
-                && appFilteredList[0].appPackage.isNotEmpty()
-            ) {
-                autoLaunchedQuery = query
-                appClickListener(appFilteredList[0])
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -340,7 +316,44 @@ class AppDrawerAdapter(
                 appTitle.visibility = View.VISIBLE
             }
             appHide.setOnClickListener { appHideListener(appModel, bindingAdapterPosition) }
+
+            appProtect.isVisible = appModel is AppModel.App
+            appProtect.setOnClickListener {
+                appHideLayout.visibility = View.GONE
+                appTitle.visibility = View.VISIBLE
+                if (appModel is AppModel.App) showMoreMenu(root.context, appModel)
+            }
         }
+
+        /** Home screen, groups and protection, kept in one menu so the action row stays readable. */
+        private fun showMoreMenu(context: Context, app: AppModel.App) {
+            val prefs = Prefs(context)
+            val homeApp = HomeApp(app.appLabel, app.appPackage, app.activityClassName, app.user.toString())
+            val onHome = prefs.homeLayout.isOnHome(homeApp)
+            val actions = listOf(
+                context.getString(if (onHome) R.string.home_remove else R.string.home_add) to {
+                    val layout = prefs.homeLayout
+                    prefs.homeLayout = if (onHome) layout.removeApp(homeApp) else layout.addApp(homeApp)
+                    context.showToast(context.getString(if (onHome) R.string.home_remove else R.string.home_add))
+                },
+                context.getString(R.string.group_add_to) to { showAddToGroup(context, prefs, homeApp) },
+                protectLabel(context, app.appPackage) to {
+                    val protected = prefs.protectedApps
+                    prefs.protectedApps = if (app.appPackage in protected)
+                        protected - app.appPackage
+                    else
+                        protected + app.appPackage
+                },
+            )
+            AlertDialog.Builder(context)
+                .setTitle(app.appLabel)
+                .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
+                .show()
+        }
+
+        private fun protectLabel(context: Context, appPackage: String): String = context.getString(
+            if (Prefs(context).isProtectedApp(appPackage)) R.string.adapter_unprotect else R.string.adapter_protect
+        )
 
         private fun getAppName(context: Context, appPackage: String, user: UserHandle): String {
             val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
