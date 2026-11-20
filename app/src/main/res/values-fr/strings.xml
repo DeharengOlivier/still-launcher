@@ -112,4 +112,7 @@
     <string name="corner_phone">Téléphone</string>
     <string name="corner_camera">Appareil photo</string>
     <string name="open_settings">Paramètres</string>
+    <string name="home_edit_done">Terminé</string>
+    <string name="group_delete_confirm">Supprimer le groupe %1$s ? Ses applis restent dans la liste.</string>
+    <string name="home_edit_remove">Retirer</string>
 </resources><!-- French -->

@@ -83,6 +83,12 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         initClickListeners()
     }
 
+    override fun onPause() {
+        // Leaving home ends edit mode, like on iOS.
+        setEditing(false)
+        super.onPause()
+    }
+
     override fun onResume() {
         super.onResume()
         // Always come back to the list's resting position.
@@ -221,7 +227,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         val context = requireContext()
         binding.mainLayout.setOnTouchListener(getSwipeGestureListener(context))
         binding.homeScroll.onSwipeLeft = { showAppList(Constants.FLAG_LAUNCH_APP) }
-        binding.homeScroll.onLongPressEmpty = { showHomeMenu() }
+        binding.homeScroll.onLongPressEmpty = { setEditing(true) }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, exitEditOnBack)
         // Keep the list below the clock whatever the clock size, so app names never cover the time.
         binding.dateTimeLayout.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> placeListBelowClock() }
         binding.homeApp1.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp1))
@@ -368,6 +375,21 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     /** The group whose apps are listed under it; only one is open at a time. */
     private var openGroup: String? = null
 
+    /** Edit mode: rows jiggle, can be dragged to reorder and carry a cross to remove them. */
+    private var editing = false
+    private val jiggles = mutableListOf<android.animation.Animator>()
+    private val exitEditOnBack = object : androidx.activity.OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = setEditing(false)
+    }
+
+    private fun setEditing(on: Boolean) {
+        if (editing == on) return
+        editing = on
+        exitEditOnBack.isEnabled = on
+        if (on) openGroup = null
+        populateGroups()
+    }
+
     private fun populateGroups() {
         val context = requireContext()
         val stored = prefs.homeLayout
@@ -375,32 +397,53 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         if (layout != stored) prefs.homeLayout = layout
         if (openGroup !in layout.groupNames) openGroup = null
 
+        jiggles.forEach { it.cancel() }
+        jiggles.clear()
         val container = binding.groupsLayout
         container.removeAllViews()
         layout.entries.forEachIndexed { index, entry ->
             when (entry) {
-                is HomeEntry.App -> container.addView(groupRow(entry.app.label, indent = false,
-                    onClick = { launchHomeApp(entry.app) },
-                    onLongClick = { showHomeAppMenu(index, entry.app) }
-                ))
+                is HomeEntry.App -> container.addView(
+                    if (editing) editRow(entry.app.label, index, onRemove = {
+                        saveAndRefresh(prefs.homeLayout.removeApp(entry.app))
+                    })
+                    else groupRow(entry.app.label, indent = false,
+                        onClick = { launchHomeApp(entry.app) },
+                        onLongClick = { setEditing(true) }
+                    )
+                )
                 is HomeEntry.Group -> {
                     val group = entry
                     val isOpen = group.name == openGroup
-                    container.addView(groupRow(group.name, indent = false,
-                        onClick = {
-                            openGroup = if (isOpen) null else group.name
-                            populateGroups()
-                        },
-                        onLongClick = { showGroupMenu(index, group.name) }
-                    ).also { withGroupMarker(it, isOpen) })
+                    val toggle = {
+                        openGroup = if (isOpen) null else group.name
+                        populateGroups()
+                    }
+                    container.addView(
+                        if (editing) editRow(group.name, index, isOpen = isOpen, onTap = toggle,
+                            onLongPress = { renameGroup(group.name) },
+                            onRemove = { confirmDeleteGroup(group.name) })
+                        else groupRow(group.name, indent = false, onClick = toggle,
+                            onLongClick = { setEditing(true) }
+                        ).also { withGroupMarker(it, isOpen) }
+                    )
                     if (isOpen) group.apps.forEach { app ->
-                        container.addView(groupRow(app.label, indent = true,
-                            onClick = { launchHomeApp(app) },
-                            onLongClick = { confirmRemoveFromGroup(group.name, app) }
-                        ))
+                        container.addView(
+                            if (editing) editRow(app.label, index = null, indent = true, onRemove = {
+                                saveAndRefresh(prefs.homeLayout.removeFromGroup(group.name, app))
+                            })
+                            else groupRow(app.label, indent = true,
+                                onClick = { launchHomeApp(app) },
+                                onLongClick = { setEditing(true) }
+                            )
+                        )
                     }
                 }
             }
+        }
+        if (editing) {
+            container.addView(footerRow(getString(R.string.home_new_group)) { createGroup() })
+            container.addView(footerRow(getString(R.string.home_edit_done)) { setEditing(false) })
         }
     }
 
@@ -412,41 +455,34 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         populateGroups()
     }
 
-    private fun showHomeAppMenu(index: Int, app: HomeApp) {
-        val actions = listOf(
-            getString(R.string.home_remove) to { saveAndRefresh(prefs.homeLayout.removeApp(app)) },
-            getString(R.string.home_move_up) to { saveAndRefresh(prefs.homeLayout.move(index, -1)) },
-            getString(R.string.home_move_down) to { saveAndRefresh(prefs.homeLayout.move(index, 1)) },
-        )
-        AlertDialog.Builder(requireContext())
-            .setTitle(app.label)
-            .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
-            .show()
+    private fun createGroup() {
+        val context = requireContext()
+        askGroupName(context, getString(R.string.home_new_group), "") { name ->
+            val before = prefs.homeLayout
+            val after = before.createGroup(name)
+            if (after == before) context.showToast(getString(R.string.group_name_taken))
+            else saveAndRefresh(after)
+        }
     }
 
-    /** Long press on empty home space: create a group or open settings. */
-    private fun showHomeMenu() {
+    private fun renameGroup(groupName: String) {
         val context = requireContext()
-        val actions = listOf(
-            getString(R.string.home_new_group) to {
-                askGroupName(context, getString(R.string.home_new_group), "") { name ->
-                    val before = prefs.homeLayout
-                    val after = before.createGroup(name)
-                    if (after == before) context.showToast(getString(R.string.group_name_taken))
-                    else saveAndRefresh(after)
-                }
-            },
-            getString(R.string.home_settings) to {
-                try {
-                    findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-                    viewModel.firstOpen(false)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            },
-        )
-        AlertDialog.Builder(context)
-            .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
+        askGroupName(context, getString(R.string.group_rename), groupName) { newName ->
+            val before = prefs.homeLayout
+            val after = before.renameGroup(groupName, newName)
+            if (after == before) context.showToast(getString(R.string.group_name_taken))
+            else {
+                if (openGroup == groupName) openGroup = newName.trim()
+                saveAndRefresh(after)
+            }
+        }
+    }
+
+    private fun confirmDeleteGroup(groupName: String) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(getString(R.string.group_delete_confirm, groupName))
+            .setPositiveButton(R.string.group_delete) { _, _ -> saveAndRefresh(prefs.homeLayout.deleteGroup(groupName)) }
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
@@ -483,38 +519,159 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         }
     }
 
-    private fun showGroupMenu(index: Int, groupName: String) {
+    /**
+     * A row in edit mode: the label jiggles, a cross at the end removes it. Rows with an [index]
+     * are top-level entries and can be dragged to a new place; group members cannot.
+     */
+    private fun editRow(
+        text: String,
+        index: Int?,
+        indent: Boolean = false,
+        isOpen: Boolean = false,
+        onTap: (() -> Unit)? = null,
+        onLongPress: (() -> Unit)? = null,
+        onRemove: () -> Unit,
+    ): View {
         val context = requireContext()
-        val actions = listOf(
-            getString(R.string.group_rename) to {
-                askGroupName(context, getString(R.string.group_rename), groupName) { newName ->
-                    val before = prefs.homeLayout
-                    val after = before.renameGroup(groupName, newName)
-                    if (after == before) context.showToast(getString(R.string.group_name_taken))
-                    else {
-                        if (openGroup == groupName) openGroup = newName.trim()
-                        saveAndRefresh(after)
-                    }
-                }
-            },
-            getString(R.string.group_delete) to { saveAndRefresh(prefs.homeLayout.deleteGroup(groupName)) },
-            getString(R.string.home_move_up) to { saveAndRefresh(prefs.homeLayout.move(index, -1)) },
-            getString(R.string.home_move_down) to { saveAndRefresh(prefs.homeLayout.move(index, 1)) },
-        )
-        AlertDialog.Builder(context)
-            .setTitle(groupName)
-            .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
-            .show()
+        val label = groupRow(text, indent, onClick = {}, onLongClick = {}).apply {
+            setOnTouchListener(null)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            if (onTap != null) withGroupMarker(this, isOpen)
+        }
+        val cross = android.widget.ImageView(context).apply {
+            setImageResource(R.drawable.ic_edit_remove)
+            imageTintList = android.content.res.ColorStateList.valueOf(label.currentTextColor)
+            alpha = 0.6f
+            contentDescription = getString(R.string.home_edit_remove)
+            val pad = 12.dpToPx()
+            setPadding(pad, pad, pad, pad)
+            layoutParams = LinearLayout.LayoutParams(48.dpToPx(), 48.dpToPx()).apply {
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+            setOnClickListener { onRemove() }
+        }
+        val row = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            addView(label)
+            addView(cross)
+            if (index != null) tag = index
+        }
+        label.setOnTouchListener(EditRowTouch(row, index, onTap, onLongPress))
+        jiggle(label)
+        return row
     }
 
-    private fun confirmRemoveFromGroup(groupName: String, app: HomeApp) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(app.label)
-            .setItems(arrayOf(getString(R.string.group_remove_app, groupName))) { _, _ ->
-                prefs.homeLayout = prefs.homeLayout.removeFromGroup(groupName, app)
-                populateGroups()
+    private fun footerRow(text: String, onClick: () -> Unit): TextView =
+        groupRow(text, indent = false, onClick = onClick, onLongClick = {}).apply {
+            setTextAppearance(R.style.TextMedium)
+            alpha = 0.6f
+            setOnTouchListener(null)
+            setOnClickListener { onClick() }
+        }
+
+    private fun jiggle(view: View) {
+        val angle = 0.7f
+        val animator = android.animation.ObjectAnimator.ofFloat(view, View.ROTATION, -angle, angle).apply {
+            duration = 130L + (0..40).random()
+            repeatCount = android.animation.ValueAnimator.INFINITE
+            repeatMode = android.animation.ValueAnimator.REVERSE
+            startDelay = (0..120).random().toLong()
+        }
+        view.pivotX = 0f
+        animator.start()
+        jiggles += animator
+    }
+
+    /** Tap, long press and vertical drag for a row in edit mode. */
+    private inner class EditRowTouch(
+        private val row: View,
+        private val index: Int?,
+        private val onTap: (() -> Unit)?,
+        private val onLongPress: (() -> Unit)?,
+    ) : View.OnTouchListener {
+        private val slop = android.view.ViewConfiguration.get(requireContext()).scaledTouchSlop
+        private var downY = 0f
+        private var dragging = false
+        private var longPressed = false
+        private val longPress = Runnable { longPressed = true; onLongPress?.invoke() }
+
+        override fun onTouch(view: View, event: android.view.MotionEvent): Boolean {
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    downY = event.rawY
+                    dragging = false
+                    longPressed = false
+                    if (onLongPress != null) view.postDelayed(longPress, android.view.ViewConfiguration.getLongPressTimeout().toLong())
+                    view.parent.requestDisallowInterceptTouchEvent(true)
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    val dy = event.rawY - downY
+                    if (!dragging && index != null && kotlin.math.abs(dy) > slop) {
+                        view.removeCallbacks(longPress)
+                        if (openGroup != null) {
+                            // Member rows sit between the entries; close the group before reordering.
+                            openGroup = null
+                            populateGroups()
+                            return true
+                        }
+                        dragging = true
+                        row.elevation = 8f
+                    }
+                    if (dragging) {
+                        row.translationY = dy
+                        shiftOthers()
+                    }
+                }
+                android.view.MotionEvent.ACTION_UP -> {
+                    view.removeCallbacks(longPress)
+                    if (dragging) drop()
+                    else if (!longPressed && kotlin.math.abs(event.rawY - downY) <= slop) onTap?.invoke()
+                }
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    view.removeCallbacks(longPress)
+                    if (dragging) drop()
+                }
             }
-            .show()
+            return true
+        }
+
+        private fun entryRows(): List<View> = (0 until binding.groupsLayout.childCount)
+            .map { binding.groupsLayout.getChildAt(it) }
+            .filter { it.tag is Int }
+
+        private fun target(): Int {
+            val rows = entryRows()
+            val centres = rows.map { it.top + it.height / 2f }
+            val from = rows.indexOf(row)
+            return app.still.data.HomeDrag.target(centres, from, row.top + row.height / 2f + row.translationY)
+        }
+
+        /** Slides the rows between the start and the landing place to open a gap. */
+        private fun shiftOthers() {
+            val rows = entryRows()
+            val from = rows.indexOf(row)
+            val to = target()
+            rows.forEachIndexed { i, other ->
+                if (other === row) return@forEachIndexed
+                val shift = when {
+                    to > from && i in (from + 1)..to -> -row.height.toFloat()
+                    to < from && i in to until from -> row.height.toFloat()
+                    else -> 0f
+                }
+                if (other.translationY != shift) other.animate().translationY(shift).setDuration(120).start()
+            }
+        }
+
+        private fun drop() {
+            val from = index ?: return
+            val offset = target() - entryRows().indexOf(row)
+            dragging = false
+            saveAndRefresh(prefs.homeLayout.move(from, offset))
+        }
     }
 
     private fun hideHomeApps() {
@@ -720,7 +877,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
             override fun onLongClick() {
                 super.onLongClick()
-                showHomeMenu()
+                setEditing(true)
             }
 
             override fun onDoubleClick() {

@@ -138,4 +138,7 @@
     <string name="corner_phone">Phone</string>
     <string name="corner_camera">Camera</string>
     <string name="open_settings">Settings</string>
+    <string name="home_edit_done">Done</string>
+    <string name="group_delete_confirm">Delete the group %1$s? Its apps stay in the app list.</string>
+    <string name="home_edit_remove">Remove</string>
 </resources>
