@@ -97,6 +97,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.homeScroll.scrollTo(0, 0)
         populateHomeScreen(false)
         viewModel.isStillDefault()
+        statusBarRevealed = false
         if (prefs.showStatusBar) showStatusBar()
         else hideStatusBar()
     }
@@ -230,7 +231,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.mainLayout.setOnTouchListener(getSwipeGestureListener(context))
         binding.homeScroll.onSwipeLeft = { showAppList(Constants.FLAG_LAUNCH_APP) }
         binding.homeScroll.onLongPressEmpty = { setEditing(true) }
-        binding.homeScroll.onPullDown = { if (!editing) expandNotificationDrawer(requireContext()) }
+        binding.homeScroll.onPullDown = { if (!editing) pullDown() }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, exitEditOnBack)
         // Keep the list below the clock whatever the clock size, so app names never cover the time.
         binding.dateTimeLayout.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> placeListBelowClock() }
@@ -448,6 +449,17 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             container.addView(footerRow(getString(R.string.home_new_group)) { createGroup() })
             container.addView(footerRow(getString(R.string.home_edit_done)) { setEditing(false) })
         }
+    }
+
+    /** True once a first pull has shown the status bar during this visit to home. */
+    private var statusBarRevealed = false
+
+    /** First pull shows the hidden status bar; the next one opens the notification shade. */
+    private fun pullDown() {
+        if (!prefs.showStatusBar && !statusBarRevealed) {
+            statusBarRevealed = true
+            showStatusBar()
+        } else expandNotificationDrawer(requireContext())
     }
 
     private fun launchHomeApp(app: HomeApp) =
