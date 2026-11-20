@@ -86,6 +86,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     override fun onPause() {
         // Leaving home ends edit mode, like on iOS.
         setEditing(false)
+        // The status bar is hidden on home only; the app list and settings show it again.
+        showStatusBar()
         super.onPause()
     }
 
@@ -228,6 +230,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.mainLayout.setOnTouchListener(getSwipeGestureListener(context))
         binding.homeScroll.onSwipeLeft = { showAppList(Constants.FLAG_LAUNCH_APP) }
         binding.homeScroll.onLongPressEmpty = { setEditing(true) }
+        binding.homeScroll.onPullDown = { if (!editing) expandNotificationDrawer(requireContext()) }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, exitEditOnBack)
         // Keep the list below the clock whatever the clock size, so app names never cover the time.
         binding.dateTimeLayout.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> placeListBelowClock() }

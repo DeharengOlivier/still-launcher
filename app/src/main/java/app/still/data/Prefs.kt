@@ -180,7 +180,8 @@ class Prefs(private val context: Context) {
         set(value) = prefs.edit { putInt(APP_LABEL_ALIGNMENT, value).apply() }
 
     var showStatusBar: Boolean
-        get() = prefs.getBoolean(STATUS_BAR, true)
+        // Off by default: the home screen has its own clock, so the system one would repeat it.
+        get() = prefs.getBoolean(STATUS_BAR, false)
         set(value) = prefs.edit { putBoolean(STATUS_BAR, value).apply() }
 
     var dateTimeVisibility: Int

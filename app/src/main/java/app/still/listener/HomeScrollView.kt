@@ -22,6 +22,10 @@ enum class HomeSwipe {
         /** The mirror gesture, used in the app list: left-to-right and mostly horizontal. */
         fun isBackToHome(dx: Float, dy: Float, threshold: Float): Boolean =
             decide(-dx, dy, threshold) == OPEN_DRAWER
+
+        /** A downward, mostly vertical drag that the list could not use opens notifications. */
+        fun isPullDown(dx: Float, dy: Float, threshold: Float, couldScrollUp: Boolean): Boolean =
+            !couldScrollUp && dy > threshold && dy > 2 * abs(dx)
     }
 }
 
@@ -41,6 +45,7 @@ class HomeScrollView @JvmOverloads constructor(
 
     var onSwipeLeft: () -> Unit = {}
     var onLongPressEmpty: () -> Unit = {}
+    var onPullDown: () -> Unit = {}
 
     private val threshold = 60 * resources.displayMetrics.density
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
@@ -49,6 +54,7 @@ class HomeScrollView @JvmOverloads constructor(
     private var downX = 0f
     private var downY = 0f
     private var moved = false
+    private var couldScrollUpAtDown = false
     private val longPress = Runnable { if (!moved) onLongPressEmpty() }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -57,6 +63,7 @@ class HomeScrollView @JvmOverloads constructor(
                 downX = event.x
                 downY = event.y
                 moved = false
+                couldScrollUpAtDown = scrollY > 0
                 if (!hitsRow(event.x, event.y)) postDelayed(longPress, longPressTimeout)
             }
             MotionEvent.ACTION_MOVE -> {
@@ -69,6 +76,8 @@ class HomeScrollView @JvmOverloads constructor(
                 removeCallbacks(longPress)
                 if (HomeSwipe.decide(event.x - downX, event.y - downY, threshold) == HomeSwipe.OPEN_DRAWER)
                     onSwipeLeft()
+                else if (HomeSwipe.isPullDown(event.x - downX, event.y - downY, threshold, couldScrollUpAtDown))
+                    onPullDown()
             }
             MotionEvent.ACTION_CANCEL -> removeCallbacks(longPress)
         }
