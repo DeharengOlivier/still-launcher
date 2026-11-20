@@ -6,10 +6,10 @@
     <string name="app">برنامه</string>
     <string name="set_as_default_launcher">تنظیم به عنوان لانچر پیش‌فرض</string>
     <string name="set_as_default_launcher_u"><u>تنظیم به عنوان لانچر پیش‌فرض</u></string>
-    <string name="set_as_default_launcher_first">ابتدا Olauncher را به عنوان پیش‌فرض تنظیم کنید</string>
+    <string name="set_as_default_launcher_first">ابتدا Still را به عنوان پیش‌فرض تنظیم کنید</string>
     <string name="double_tap_to_lock_screen">دو ضربه برای قفل</string>
     <string name="home_button_show_recents">دکمهٔ خانه برای برنامه‌های اخیر</string>
-    <string name="admin_permission_message">برنامهٔ Olauncher متعهد می‌شود از مجوز دسترس‌پذیری مسئولانه استفاده کند. Olauncher هیچ داده‌ای را جمع‌آوری نمی‌کند یا به اشتراک نمی‌گذارد.</string>
+    <string name="admin_permission_message">برنامهٔ Still متعهد می‌شود از مجوز دسترس‌پذیری مسئولانه استفاده کند. Still هیچ داده‌ای را جمع‌آوری نمی‌کند یا به اشتراک نمی‌گذارد.</string>
     <string name="off">خاموش</string>
     <string name="on">روشن</string>
     <string name="black">سیاه</string>
@@ -39,23 +39,23 @@
     <string name="system_default">سیستم</string>
     <string name="dark">تاریک</string>
     <string name="light">روشن</string>
-    <string name="welcome_to_olauncher_settings">به تنظیمات خوش آمدید!\n\nبه یاد داشته باشید، اگر سؤالی دارید، صفحهٔ «درباره» پاسخ آن را دارد.</string>
-    <string name="rate_us_message">سلام، این پیام را دیگر نخواهید دید.\n\nاگر Olauncher برایتان مفید است، می‌توانید یک نظر ۵ ستاره ثبت کنید؟ این کار برای ما بسیار ارزشمند خواهد بود. متشکریم!</string>
+    <string name="welcome_to_settings">به تنظیمات خوش آمدید!\n\nبه یاد داشته باشید، اگر سؤالی دارید، صفحهٔ «درباره» پاسخ آن را دارد.</string>
+    <string name="rate_us_message">سلام، این پیام را دیگر نخواهید دید.\n\nاگر Still برایتان مفید است، می‌توانید یک نظر ۵ ستاره ثبت کنید؟ این کار برای ما بسیار ارزشمند خواهد بود. متشکریم!</string>
     <!--    <string name="share_message">Your monthly reminder - you should use your phone, not the other way round. Stay strong. You\'re doing great!-->
-    <!--         \n\nIf you have a moment to spare, could you please share Olauncher with others? Olauncher needs people. More importantly, people need Olauncher.</string>-->
-    <string name="keyboard_message">سلام، صفحه‌کلید سریع‌ترین راه برای یافتن و اجرای برنامه‌ها در Olauncher است. می‌توانیم از شما خواهش کنیم این گزینه را چند روز دیگر روشن نگه دارید و سپس تصمیم بگیرید؟\n\nانتخاب همیشه با شماست.</string>
+    <!--         \n\nIf you have a moment to spare, could you please share Still with others? Still needs people. More importantly, people need Still.</string>-->
+    <string name="keyboard_message">سلام، صفحه‌کلید سریع‌ترین راه برای یافتن و اجرای برنامه‌ها در Still است. می‌توانیم از شما خواهش کنیم این گزینه را چند روز دیگر روشن نگه دارید و سپس تصمیم بگیرید؟\n\nانتخاب همیشه با شماست.</string>
     <string name="app_usage_message">برای نمایش یا پنهان کردن مدت‌زمان استفاده از صفحه در صفحهٔ اصلی، لطفاً مجوز دسترسی به داده‌های استفاده را مجاز یا غیرمجاز کنید.\n\nنکته: هیچ داده‌ای از استفادهٔ برنامه‌ها جمع‌آوری نمی‌شود. همه‌چیز در دستگاه شما پردازش می‌شود.</string>
-    <string name="accessibility_service_description">برای فعال کردن حرکت «دو ضربه برای قفل»، مجوز دسترس‌پذیری لازم است. هیچ داده‌ای که Olauncher از طریق این سرویس به دست می‌آورد از دستگاه شما خارج نخواهد شد.</string>
+    <string name="accessibility_service_description">برای فعال کردن حرکت «دو ضربه برای قفل»، مجوز دسترس‌پذیری لازم است. هیچ داده‌ای که Still از طریق این سرویس به دست می‌آورد از دستگاه شما خارج نخواهد شد.</string>
     <string name="close">بستن</string>
     <string name="not_now">فعلاً نه</string>
     <string name="date">تاریخ</string>
     <string name="date_only">فقط تاریخ</string>
     <string name="bottom_on">پایین: روشن</string>
     <string name="bottom_off">پایین: خاموش</string>
-    <string name="please_set_olauncher_as_default_first">لطفاً ابتدا Olauncher را به عنوان پیش‌فرض تنظیم کنید</string>
-    <string name="hidden_apps_message">نکته: برای یافتن برنامه‌های پنهان خود، روی «Olauncher» در بالای این صفحهٔ «تنظیمات» ضربه بزنید.\n\nجزئیات بیشتر در صفحهٔ «درباره» ما موجود است.</string>
+    <string name="please_set_still_as_default_first">لطفاً ابتدا Still را به عنوان پیش‌فرض تنظیم کنید</string>
+    <string name="hidden_apps_message">نکته: برای یافتن برنامه‌های پنهان خود، روی «Still» در بالای این صفحهٔ «تنظیمات» ضربه بزنید.\n\nجزئیات بیشتر در صفحهٔ «درباره» ما موجود است.</string>
     <string name="accessibility_permission">مجوز دسترس‌پذیری</string>
-    <string name="accessibility_disclosure">برنامهٔ Olauncher از Accessibility Service API فقط برای یک قابلیت استفاده می‌کند: «دو ضربه برای قفل». این قابلیت به Olauncher اجازه می‌دهد وقتی روی صفحهٔ اصلی دو ضربه می‌زنید، صفحه را قفل کند.\n\nاین سرویس فقط ضربه‌های داخل Olauncher را می‌بیند و فقط برای قفل کردن صفحه از آن‌ها استفاده می‌کند. به برنامه‌های دیگر یا چیزهایی که تایپ می‌کنید نگاه نمی‌کند.\n\nهیچ داده‌ای جمع‌آوری، ذخیره یا به اشتراک گذاشته نمی‌شود. هیچ چیزی از دستگاه شما خارج نمی‌شود.\n\nروی «پذیرش» ضربه بزنید، سپس Olauncher را در تنظیمات «دسترس‌پذیری» دستگاه خود روشن کنید.</string>
+    <string name="accessibility_disclosure">برنامهٔ Still از Accessibility Service API فقط برای یک قابلیت استفاده می‌کند: «دو ضربه برای قفل». این قابلیت به Still اجازه می‌دهد وقتی روی صفحهٔ اصلی دو ضربه می‌زنید، صفحه را قفل کند.\n\nاین سرویس فقط ضربه‌های داخل Still را می‌بیند و فقط برای قفل کردن صفحه از آن‌ها استفاده می‌کند. به برنامه‌های دیگر یا چیزهایی که تایپ می‌کنید نگاه نمی‌کند.\n\nهیچ داده‌ای جمع‌آوری، ذخیره یا به اشتراک گذاشته نمی‌شود. هیچ چیزی از دستگاه شما خارج نمی‌شود.\n\nروی «پذیرش» ضربه بزنید، سپس Still را در تنظیمات «دسترس‌پذیری» دستگاه خود روشن کنید.</string>
     <string name="accept">پذیرش</string>
     <string name="permission">مجوز</string>
     <string name="enable">فعال‌سازی</string>
@@ -67,7 +67,7 @@
     <string name="bold_font">فونت پررنگ</string>
     <string name="enabled">فعال</string>
     <string name="please_turn_on_double_tap_to_unlock">لطفاً دو ضربه برای قفل را روشن کنید</string>
-    <string name="launcher_failed_to_lock_device">برنامهٔ Olauncher موفق به قفل کردن دستگاه نشد.\nلطفاً تنظیمات برنامهٔ خود را بررسی کنید.</string>
+    <string name="launcher_failed_to_lock_device">برنامهٔ Still موفق به قفل کردن دستگاه نشد.\nلطفاً تنظیمات برنامهٔ خود را بررسی کنید.</string>
     <string name="long_press_to_select_app">لمس طولانی برای انتخاب برنامه</string>
     <string name="unable_to_open_app">باز کردن برنامه امکان‌پذیر نیست</string>
     <string name="unable_to_open_app_info">باز کردن اطلاعات برنامه امکان‌پذیر نیست</string>
@@ -75,7 +75,7 @@
     <string name="type_a_new_app_name_first">ابتدا یک نام جدید برای برنامه تایپ کنید</string>
     <string name="app_not_found">برنامه یافت نشد</string>
     <string name="your_wallpaper_will_update_shortly">تصویر زمینهٔ شما به‌زودی به‌روزرسانی خواهد شد</string>
-    <string name="olauncher_is_not_default_launcher">برنامهٔ Olauncher پیش‌فرض نیست. به‌روزرسانی تصویر زمینه با شکست مواجه خواهد شد.</string>
+    <string name="still_is_not_default_launcher">برنامهٔ Still پیش‌فرض نیست. به‌روزرسانی تصویر زمینه با شکست مواجه خواهد شد.</string>
     <string name="no_hidden_apps">هیچ برنامهٔ پنهانی وجود ندارد</string>
     <string name="hidden_apps">برنامه‌های پنهان</string>
     <string name="adapter_show">نمایش</string>

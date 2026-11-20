@@ -3,9 +3,9 @@
     <string name="app">Aplicativo</string>
     <string name="set_as_default_launcher">Definir como launcher padrão</string>
     <string name="set_as_default_launcher_u"><u>Definir como launcher padrão</u></string>
-    <string name="set_as_default_launcher_first">Defina o Olauncher como padrão primeiro</string>
+    <string name="set_as_default_launcher_first">Defina o Still como padrão primeiro</string>
     <string name="double_tap_to_lock_screen">Toque duplo para bloquear</string>
-    <string name="admin_permission_message">O Olauncher promete usar a permissão de acessibilidade de forma responsável. O Olauncher não coleta nem compartilha nenhum dado.</string>
+    <string name="admin_permission_message">O Still promete usar a permissão de acessibilidade de forma responsável. O Still não coleta nem compartilha nenhum dado.</string>
     <string name="off">Desligado</string>
     <string name="on">Ligado</string>
     <string name="black">Preto</string>
@@ -33,24 +33,24 @@
     <string name="system_default">Sistema</string>
     <string name="dark">Escuro</string>
     <string name="light">Claro</string>
-    <string name="welcome_to_olauncher_settings">Bem-vindo às configurações!
+    <string name="welcome_to_settings">Bem-vindo às configurações!
         \n\nLembre-se, se você tiver alguma dúvida, nossa página Sobre tem a resposta.</string>
-    <string name="rate_us_message">Oi, você não verá esta mensagem novamente.\n\nSe o Olauncher está sendo útil para você, poderia deixar uma avaliação de 5 estrelas? Isso significaria muito para nós. Obrigado!</string>
-    <string name="keyboard_message">Olá, o teclado é a maneira mais rápida de encontrar e iniciar aplicativos no Olauncher. Podemos pedir-lhe que mantenha isto ligado por mais alguns dias para depois decidir?
+    <string name="rate_us_message">Oi, você não verá esta mensagem novamente.\n\nSe o Still está sendo útil para você, poderia deixar uma avaliação de 5 estrelas? Isso significaria muito para nós. Obrigado!</string>
+    <string name="keyboard_message">Olá, o teclado é a maneira mais rápida de encontrar e iniciar aplicativos no Still. Podemos pedir-lhe que mantenha isto ligado por mais alguns dias para depois decidir?
         \n\nA escolha é sempre sua!</string>
     <string name="app_usage_message">Para exibir/ocultar o tempo de tela na tela inicial, permita ou negue a permissão de uso do aplicativo.
         \n\nNota: Não são coletados dados de uso do aplicativo. Tudo é processado no seu dispositivo.</string>
-    <string name="accessibility_service_description">A permissão de acessibilidade é necessária para ativar o gesto de toque duplo para bloquear. Nenhum dado obtido pelo Olauncher por meio deste serviço sairá do seu dispositivo.</string>
+    <string name="accessibility_service_description">A permissão de acessibilidade é necessária para ativar o gesto de toque duplo para bloquear. Nenhum dado obtido pelo Still por meio deste serviço sairá do seu dispositivo.</string>
     <string name="close">Fechar</string>
     <string name="not_now">Agora não</string>
     <string name="date">Data</string>
     <string name="date_only">Apenas data</string>
     <string name="bottom_on">Fundo: Ativado</string>
     <string name="bottom_off">Fundo: Desligado</string>
-    <string name="please_set_olauncher_as_default_first">Por favor, defina o Olauncher como seu launcher padrão primeiro</string>
-    <string name="hidden_apps_message">Nota: Toque em \'Olauncher\' na parte superior desta página de Configurações para encontrar seus aplicativos ocultos.\n\nMais detalhes disponíveis em nossa página Sobre.</string>
+    <string name="please_set_still_as_default_first">Por favor, defina o Still como seu launcher padrão primeiro</string>
+    <string name="hidden_apps_message">Nota: Toque em \'Still\' na parte superior desta página de Configurações para encontrar seus aplicativos ocultos.\n\nMais detalhes disponíveis em nossa página Sobre.</string>
     <string name="accessibility_permission">Permissão de acessibilidade</string>
-    <string name="accessibility_disclosure">O Olauncher usa a Accessibility Service API para apenas um recurso: Toque duas vezes para bloquear. Ela permite que o Olauncher bloqueie sua tela quando você toca duas vezes na tela inicial.\n\nO serviço só vê os toques dentro do Olauncher e só os usa para bloquear sua tela. Ele não olha outros apps nem nada do que você digita.\n\nNenhum dado é coletado, armazenado ou compartilhado. Nada sai do seu dispositivo.\n\nToque em Aceitar e, depois, ative o Olauncher nas configurações de Acessibilidade do seu dispositivo.</string>
+    <string name="accessibility_disclosure">O Still usa a Accessibility Service API para apenas um recurso: Toque duas vezes para bloquear. Ela permite que o Still bloqueie sua tela quando você toca duas vezes na tela inicial.\n\nO serviço só vê os toques dentro do Still e só os usa para bloquear sua tela. Ele não olha outros apps nem nada do que você digita.\n\nNenhum dado é coletado, armazenado ou compartilhado. Nada sai do seu dispositivo.\n\nToque em Aceitar e, depois, ative o Still nas configurações de Acessibilidade do seu dispositivo.</string>
     <string name="accept">Aceitar</string>
     <string name="permission">Permissão</string>
     <string name="home_button_show_recents">Botão início para recentes</string>
@@ -62,14 +62,14 @@
     <string name="text_size">Tamanho do texto</string>
     <string name="enabled">Ativado</string>
     <string name="please_turn_on_double_tap_to_unlock">Ative o toque duplo para bloquear</string>
-    <string name="launcher_failed_to_lock_device">O Olauncher não conseguiu bloquear o dispositivo.\nVerifique as configurações do aplicativo.</string>
+    <string name="launcher_failed_to_lock_device">O Still não conseguiu bloquear o dispositivo.\nVerifique as configurações do aplicativo.</string>
     <string name="long_press_to_select_app">Pressione e segure para selecionar o aplicativo</string>
     <string name="unable_to_open_app">Não é possível abrir o aplicativo</string>
     <string name="system_app_cannot_delete">Aplicativo do sistema, não é possível desinstalar</string>
     <string name="type_a_new_app_name_first">Digite um novo nome de aplicativo primeiro</string>
     <string name="app_not_found">Aplicativo não encontrado</string>
     <string name="your_wallpaper_will_update_shortly">Seu papel de parede será atualizado em breve</string>
-    <string name="olauncher_is_not_default_launcher">O Olauncher não é o launcher padrão. A atualização do papel de parede falhará.</string>
+    <string name="still_is_not_default_launcher">O Still não é o launcher padrão. A atualização do papel de parede falhará.</string>
     <string name="no_hidden_apps">Sem aplicativos ocultos</string>
     <string name="hidden_apps">Aplicativos ocultos</string>
     <string name="adapter_show">Mostrar</string>

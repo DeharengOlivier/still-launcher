@@ -76,7 +76,7 @@
 
     <!-- Home apps-->
     <!-- Scrolling home list; its top padding is set in code to sit below the clock. -->
-    <app.olauncher.listener.HomeScrollView
+    <app.still.listener.HomeScrollView
         android:id="@+id/homeScroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -199,7 +199,7 @@
 
     </LinearLayout>
 
-    </app.olauncher.listener.HomeScrollView>
+    </app.still.listener.HomeScrollView>
 
     <TextView
         android:id="@+id/firstRunTips"

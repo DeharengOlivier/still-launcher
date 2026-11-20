@@ -1,0 +1,375 @@
+package app.still.ui
+
+import android.content.Context
+import android.content.pm.LauncherApps
+import android.os.UserHandle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.Filter
+import android.widget.Filterable
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import app.still.R
+import app.still.data.AppModel
+import app.still.data.Constants
+import app.still.data.Prefs
+import app.still.data.HomeApp
+import app.still.helper.showAddToGroup
+import app.still.helper.showToast
+import android.app.AlertDialog
+import app.still.databinding.AdapterAppDrawerBinding
+import app.still.databinding.AdapterPrivateSpaceHeaderBinding
+import app.still.helper.appLabelMatches
+import app.still.helper.hideKeyboard
+import app.still.helper.isSystemApp
+import app.still.helper.showKeyboard
+
+class AppDrawerAdapter(
+    private var flag: Int,
+    private val appLabelGravity: Int,
+    private val appClickListener: (AppModel) -> Unit,
+    private val appInfoListener: (AppModel) -> Unit,
+    private val appDeleteListener: (AppModel) -> Unit,
+    private val appHideListener: (AppModel, Int) -> Unit,
+    private val appRenameListener: (AppModel, String) -> Unit,
+    private val privateSpaceToggleListener: () -> Unit = {},
+    private val privateSpaceSettingsListener: () -> Unit = {},
+) : ListAdapter<AppModel, RecyclerView.ViewHolder>(DIFF_CALLBACK), Filterable {
+
+    companion object {
+        const val VIEW_TYPE_APP = 0
+        const val VIEW_TYPE_PRIVATE_HEADER = 1
+
+        val DIFF_CALLBACK = object : DiffUtil.ItemCallback<AppModel>() {
+            override fun areItemsTheSame(oldItem: AppModel, newItem: AppModel): Boolean = when {
+                oldItem is AppModel.App && newItem is AppModel.App ->
+                    oldItem.appPackage == newItem.appPackage && oldItem.user == newItem.user
+
+                oldItem is AppModel.PinnedShortcut && newItem is AppModel.PinnedShortcut ->
+                    oldItem.identity == newItem.identity
+
+                oldItem is AppModel.PrivateSpaceHeader && newItem is AppModel.PrivateSpaceHeader -> true
+
+                else -> false
+            }
+
+            override fun areContentsTheSame(oldItem: AppModel, newItem: AppModel): Boolean =
+                oldItem == newItem
+        }
+    }
+
+    private val appFilter = createAppFilter()
+    private val myUserHandle = android.os.Process.myUserHandle()
+
+    var appsList: MutableList<AppModel> = mutableListOf()
+    var appFilteredList: MutableList<AppModel> = mutableListOf()
+
+    override fun getItemViewType(position: Int): Int {
+        return when (appFilteredList.getOrNull(position)) {
+            is AppModel.PrivateSpaceHeader -> VIEW_TYPE_PRIVATE_HEADER
+            else -> VIEW_TYPE_APP
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            VIEW_TYPE_PRIVATE_HEADER -> PrivateSpaceHeaderViewHolder(
+                AdapterPrivateSpaceHeaderBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+            )
+
+            else -> ViewHolder(
+                AdapterAppDrawerBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+            )
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        try {
+            if (appFilteredList.isEmpty() || position == RecyclerView.NO_POSITION) return
+            val appModel = appFilteredList[holder.bindingAdapterPosition]
+            when (holder) {
+                is PrivateSpaceHeaderViewHolder -> {
+                    holder.bind(
+                        appLabelGravity,
+                        privateSpaceToggleListener,
+                        privateSpaceSettingsListener,
+                    )
+                }
+
+                is ViewHolder -> holder.bind(
+                    flag,
+                    appLabelGravity,
+                    myUserHandle,
+                    appModel,
+                    appClickListener,
+                    appDeleteListener,
+                    appInfoListener,
+                    appHideListener,
+                    appRenameListener
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun getFilter(): Filter = this.appFilter
+
+    private fun createAppFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(charSearch: CharSequence?): FilterResults {
+
+                val appFilteredList = (if (charSearch.isNullOrBlank()) appsList
+                else appsList.filter { app ->
+                    app !is AppModel.PrivateSpaceHeader && appLabelMatches(app.appLabel, charSearch)
+                } as MutableList<AppModel>)
+
+                val filterResults = FilterResults()
+                filterResults.values = appFilteredList
+                return filterResults
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                results?.values?.let {
+                    val items = it as MutableList<AppModel>
+                    appFilteredList = items
+                    // Search only filters: an app opens when it is tapped, never by itself.
+                    submitList(appFilteredList)
+                }
+            }
+        }
+    }
+
+    fun setAppList(appsList: MutableList<AppModel>) {
+        // Add empty app for bottom padding in recyclerview and assign to list
+        appsList.add(
+            AppModel.App(
+                appLabel = "",
+                key = null,
+                appPackage = "",
+                activityClassName = "",
+                isNew = false,
+                user = android.os.Process.myUserHandle()
+            )
+        )
+        this.appsList = appsList
+        this.appFilteredList = appsList
+        submitList(appsList)
+    }
+
+    fun launchFirstInList() {
+        val first = appFilteredList.firstOrNull { it !is AppModel.PrivateSpaceHeader && it.appPackage.isNotEmpty() }
+        if (first != null) appClickListener(first)
+    }
+
+    class PrivateSpaceHeaderViewHolder(private val binding: AdapterPrivateSpaceHeaderBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(
+            appLabelGravity: Int,
+            toggleListener: () -> Unit,
+            settingsListener: () -> Unit,
+        ) = with(binding) {
+            privateSpaceTitle.gravity = appLabelGravity
+            privateSpaceTitle.setOnClickListener { toggleListener() }
+            privateSpaceTitle.setOnLongClickListener {
+                settingsListener()
+                true
+            }
+        }
+    }
+
+    class ViewHolder(private val binding: AdapterAppDrawerBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(
+            flag: Int,
+            appLabelGravity: Int,
+            myUserHandle: UserHandle,
+            appModel: AppModel,
+            clickListener: (AppModel) -> Unit,
+            appDeleteListener: (AppModel) -> Unit,
+            appInfoListener: (AppModel) -> Unit,
+            appHideListener: (AppModel, Int) -> Unit,
+            appRenameListener: (AppModel, String) -> Unit,
+        ) = with(binding) {
+            appHideLayout.visibility = View.GONE
+            renameLayout.visibility = View.GONE
+            appTitle.visibility = View.VISIBLE
+
+            // Show indicators in title based on app type and state
+            appTitle.text = buildString {
+                append(appModel.appLabel)
+                if (appModel.isNew) append(" ✦")
+            }
+            appTitle.gravity = appLabelGravity
+            otherProfileIndicator.isVisible = appModel.user != myUserHandle
+
+            appTitle.setOnClickListener { clickListener(appModel) }
+
+            appTitle.setOnLongClickListener {
+                if (appModel.appPackage.isNotEmpty()) {
+                    appDelete.alpha = when (
+                        appModel is AppModel.PinnedShortcut || !root.context.isSystemApp(appModel.appPackage, appModel.user)
+                    ) {
+                        true -> 1.0f
+                        false -> 0.5f
+                    }
+                    appDelete.text = if (appModel is AppModel.PinnedShortcut)
+                        root.context.getString(R.string.remove)
+                    else
+                        root.context.getString(R.string.delete)
+                    appHide.text = if (flag == Constants.FLAG_HIDDEN_APPS)
+                        root.context.getString(R.string.adapter_show)
+                    else
+                        root.context.getString(R.string.adapter_hide)
+                    appTitle.visibility = View.INVISIBLE
+                    appHide.alpha = when (appModel is AppModel.PinnedShortcut) {
+                        true -> 0.5f
+                        false -> 1.0f
+                    }
+                    appHideLayout.visibility = View.VISIBLE
+                    // Only allow renaming non hidden apps
+                    appRename.isVisible = flag != Constants.FLAG_HIDDEN_APPS
+                }
+                true
+            }
+
+            // Configure rename behavior
+            appRename.setOnClickListener {
+                if (appModel.appPackage.isNotEmpty()) {
+                    etAppRename.hint = getAppName(etAppRename.context, appModel.appPackage, appModel.user)
+                    etAppRename.setText(appModel.appLabel)
+                    etAppRename.setSelectAllOnFocus(true)
+                    renameLayout.visibility = View.VISIBLE
+                    appHideLayout.visibility = View.GONE
+                    etAppRename.showKeyboard()
+                    etAppRename.imeOptions = EditorInfo.IME_ACTION_DONE
+                }
+            }
+            etAppRename.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+                appTitle.visibility = if (hasFocus) View.INVISIBLE else View.VISIBLE
+            }
+            etAppRename.addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(s: Editable?) {
+                    etAppRename.hint = getAppName(etAppRename.context, appModel.appPackage, appModel.user)
+                }
+
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int,
+                ) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    etAppRename.hint = ""
+                }
+            })
+            etAppRename.setOnEditorActionListener { _, actionCode, _ ->
+                if (actionCode == EditorInfo.IME_ACTION_DONE) {
+                    val renameLabel = etAppRename.text.toString().trim()
+                    if (renameLabel.isNotBlank() && appModel.appPackage.isNotBlank()) {
+                        appRenameListener(appModel, renameLabel)
+                        renameLayout.visibility = View.GONE
+                    }
+                    true
+                }
+                false
+            }
+            tvSaveRename.setOnClickListener {
+                etAppRename.hideKeyboard()
+                val renameLabel = etAppRename.text.toString().trim()
+                if (renameLabel.isNotBlank() && appModel.appPackage.isNotBlank()) {
+                    appRenameListener(appModel, renameLabel)
+                    renameLayout.visibility = View.GONE
+                } else {
+                    appRenameListener(
+                        appModel,
+                        getAppName(etAppRename.context, appModel.appPackage, appModel.user)
+                    )
+                    renameLayout.visibility = View.GONE
+                }
+            }
+            appInfo.setOnClickListener { appInfoListener(appModel) }
+            appDelete.setOnClickListener { appDeleteListener(appModel) }
+            appMenuClose.setOnClickListener {
+                appHideLayout.visibility = View.GONE
+                appTitle.visibility = View.VISIBLE
+            }
+            appRenameClose.setOnClickListener {
+                renameLayout.visibility = View.GONE
+                appTitle.visibility = View.VISIBLE
+            }
+            appHide.setOnClickListener { appHideListener(appModel, bindingAdapterPosition) }
+
+            appProtect.isVisible = appModel is AppModel.App
+            appProtect.setOnClickListener {
+                appHideLayout.visibility = View.GONE
+                appTitle.visibility = View.VISIBLE
+                if (appModel is AppModel.App) showMoreMenu(root.context, appModel)
+            }
+        }
+
+        /** Home screen, groups and protection, kept in one menu so the action row stays readable. */
+        private fun showMoreMenu(context: Context, app: AppModel.App) {
+            val prefs = Prefs(context)
+            val homeApp = HomeApp(app.appLabel, app.appPackage, app.activityClassName, app.user.toString())
+            val onHome = prefs.homeLayout.isOnHome(homeApp)
+            val actions = listOf(
+                context.getString(if (onHome) R.string.home_remove else R.string.home_add) to {
+                    val layout = prefs.homeLayout
+                    prefs.homeLayout = if (onHome) layout.removeApp(homeApp) else layout.addApp(homeApp)
+                    context.showToast(context.getString(if (onHome) R.string.home_remove else R.string.home_add))
+                },
+                context.getString(R.string.group_add_to) to { showAddToGroup(context, prefs, homeApp) },
+                protectLabel(context, app.appPackage) to {
+                    val protected = prefs.protectedApps
+                    prefs.protectedApps = if (app.appPackage in protected)
+                        protected - app.appPackage
+                    else
+                        protected + app.appPackage
+                },
+            )
+            AlertDialog.Builder(context)
+                .setTitle(app.appLabel)
+                .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second() }
+                .show()
+        }
+
+        private fun protectLabel(context: Context, appPackage: String): String = context.getString(
+            if (Prefs(context).isProtectedApp(appPackage)) R.string.adapter_unprotect else R.string.adapter_protect
+        )
+
+        private fun getAppName(context: Context, appPackage: String, user: UserHandle): String {
+            val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+            return try {
+                val activityList = launcherApps.getActivityList(appPackage, user)
+                if (activityList.isNotEmpty()) {
+                    activityList.first().label.toString()
+                } else {
+                    val packageManager = context.packageManager
+                    packageManager.getApplicationLabel(
+                        packageManager.getApplicationInfo(appPackage, 0)
+                    ).toString()
+                }
+            } catch (_: Exception) {
+                "" // As a fallback, display an empty string.
+            }
+        }
+    }
+}

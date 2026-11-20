@@ -3,16 +3,16 @@
     <string name="app">Aplikacja</string>
     <string name="set_as_default_launcher">Ustaw jako domyślny program uruchamiający</string>
     <string name="set_as_default_launcher_u"><u>Ustaw jako domyślny program uruchamiający</u></string>
-    <string name="set_as_default_launcher_first">Najpierw ustaw Olauncher jako domyślny</string>
+    <string name="set_as_default_launcher_first">Najpierw ustaw Still jako domyślny</string>
     <string name="_8">8</string>
     <string name="okay">OK</string>
     <string name="your_wallpaper_will_update_shortly">Twoja tapeta zostanie wkrótce zaktualizowana</string>
-    <string name="olauncher_is_not_default_launcher">Olauncher nie jest domyślnym programem uruchamiającym. Codzienna aktualizacja tapety może się nie powieść.</string>
+    <string name="still_is_not_default_launcher">Still nie jest domyślnym programem uruchamiającym. Codzienna aktualizacja tapety może się nie powieść.</string>
     <string name="no_hidden_apps">Brak ukrytych aplikacji</string>
     <string name="hidden_apps">Ukryte aplikacje</string>
-    <string name="hidden_apps_message">Uwaga: Stuknij w „Olauncher” u góry tej strony ustawień, aby znaleźć ukryte aplikacje.\n\nWięcej informacji znajdziesz na naszej stronie Informacje.</string>
+    <string name="hidden_apps_message">Uwaga: Stuknij w „Still” u góry tej strony ustawień, aby znaleźć ukryte aplikacje.\n\nWięcej informacji znajdziesz na naszej stronie Informacje.</string>
     <string name="accessibility_permission">Uprawnienie ułatwień dostępu</string>
-    <string name="accessibility_disclosure">Olauncher używa Accessibility Service API tylko do jednej funkcji: Dotknij dwukrotnie, aby zablokować. Pozwala ona Olauncherowi zablokować ekran, gdy dwukrotnie dotkniesz ekranu głównego.\n\nUsługa widzi tylko dotknięcia wewnątrz Olaunchera i używa ich wyłącznie do zablokowania ekranu. Nie patrzy na inne aplikacje ani na nic, co wpisujesz.\n\nŻadne dane nie są zbierane, przechowywane ani udostępniane. Nic nie opuszcza Twojego urządzenia.\n\nDotknij Akceptuj, a następnie włącz Olauncher w ustawieniach Ułatwień dostępu na urządzeniu.</string>
+    <string name="accessibility_disclosure">Still używa Accessibility Service API tylko do jednej funkcji: Dotknij dwukrotnie, aby zablokować. Pozwala ona Stillowi zablokować ekran, gdy dwukrotnie dotkniesz ekranu głównego.\n\nUsługa widzi tylko dotknięcia wewnątrz Stilla i używa ich wyłącznie do zablokowania ekranu. Nie patrzy na inne aplikacje ani na nic, co wpisujesz.\n\nŻadne dane nie są zbierane, przechowywane ani udostępniane. Nic nie opuszcza Twojego urządzenia.\n\nDotknij Akceptuj, a następnie włącz Still w ustawieniach Ułatwień dostępu na urządzeniu.</string>
     <string name="accept">Akceptuj</string>
     <string name="permission">Uprawnienie</string>
     <string name="home_button_show_recents">Przycisk ekranu głównego dla ostatnich</string>
@@ -24,7 +24,7 @@
     <string name="text_size">Rozmiar czcionki</string>
     <string name="enabled">Włączono</string>
     <string name="please_turn_on_double_tap_to_unlock">Włącz podwójne dotknięcie, aby zablokować</string>
-    <string name="launcher_failed_to_lock_device">Olauncherowi nie udało się zablokować urządzenia. Sprawdź ustawienia aplikacji.</string>
+    <string name="launcher_failed_to_lock_device">Stillowi nie udało się zablokować urządzenia. Sprawdź ustawienia aplikacji.</string>
     <string name="long_press_to_select_app">Naciśnij długo, aby wybrać aplikację</string>
     <string name="unable_to_open_app">Nie można otworzyć aplikacji</string>
     <string name="system_app_cannot_delete">Aplikacja systemowa, nie można odinstalować</string>
@@ -32,7 +32,7 @@
     <string name="adapter_show">Pokaż</string>
     <string name="adapter_hide">Ukryj</string>
     <string name="double_tap_to_lock_screen">Dotknij dwukrotnie, aby zablokować</string>
-    <string name="admin_permission_message">Olauncher obiecuje odpowiedzialnie korzystać z uprawnienia ułatwień dostępu. Olauncher nie gromadzi ani nie udostępnia żadnych danych.</string>
+    <string name="admin_permission_message">Still obiecuje odpowiedzialnie korzystać z uprawnienia ułatwień dostępu. Still nie gromadzi ani nie udostępnia żadnych danych.</string>
     <string name="off">Wył.</string>
     <string name="on">Wł.</string>
     <string name="black">Czarny</string>
@@ -58,20 +58,20 @@
     <string name="system_default">System</string>
     <string name="dark">Ciemny</string>
     <string name="light">Jasny</string>
-    <string name="welcome_to_olauncher_settings">Witamy w ustawieniach!
+    <string name="welcome_to_settings">Witamy w ustawieniach!
         \n\nPamiętaj, jeśli masz jakiekolwiek pytania, nasza strona „O nas” ma odpowiedź.</string>
-    <string name="rate_us_message">Cześć, nie zobaczysz już tej wiadomości.\n\nJeśli Olauncher jest dla Ciebie przydatny, czy możesz zostawić ocenę 5 gwiazdek? Będzie to dla nas bardzo wiele znaczyć. Dziękujemy!</string>
-    <string name="keyboard_message">Cześć, klawiatura to najszybszy sposób znajdowania i uruchamiania aplikacji w Olauncher. Czy możemy poprosić o pozostawienie tego włączonego jeszcze przez kilka dni, a następnie podjęcie decyzji?\n\nWybór zawsze należy do Ciebie.</string>
+    <string name="rate_us_message">Cześć, nie zobaczysz już tej wiadomości.\n\nJeśli Still jest dla Ciebie przydatny, czy możesz zostawić ocenę 5 gwiazdek? Będzie to dla nas bardzo wiele znaczyć. Dziękujemy!</string>
+    <string name="keyboard_message">Cześć, klawiatura to najszybszy sposób znajdowania i uruchamiania aplikacji w Still. Czy możemy poprosić o pozostawienie tego włączonego jeszcze przez kilka dni, a następnie podjęcie decyzji?\n\nWybór zawsze należy do Ciebie.</string>
     <string name="app_usage_message">Aby wyświetlić/ukryć czas ekranu na ekranie głównym, pozwól lub zabroń aplikacji na dostęp do danych o użyciu.
         \n\nUwaga: Nie są gromadzone żadne dane o użyciu aplikacji. Wszystko jest przetwarzane na Twoim urządzeniu.</string>
-    <string name="accessibility_service_description">Uprawnienie ułatwień dostępu jest wymagane, aby włączyć gest podwójnego dotknięcia do zablokowania. Żadne dane pozyskane przez Olauncher za pośrednictwem tej usługi nie opuszczą Twojego urządzenia.</string>
+    <string name="accessibility_service_description">Uprawnienie ułatwień dostępu jest wymagane, aby włączyć gest podwójnego dotknięcia do zablokowania. Żadne dane pozyskane przez Still za pośrednictwem tej usługi nie opuszczą Twojego urządzenia.</string>
     <string name="close">Zamknij</string>
     <string name="not_now">Nie teraz</string>
     <string name="date">Data</string>
     <string name="date_only">Tylko data</string>
     <string name="bottom_on">Dół: wł.</string>
     <string name="bottom_off">Dół: wył.</string>
-    <string name="please_set_olauncher_as_default_first">Najpierw ustaw Olauncher jako domyślny program uruchamiający</string>
+    <string name="please_set_still_as_default_first">Najpierw ustaw Still jako domyślny program uruchamiający</string>
     <string name="app_not_found">Nie znaleziono aplikacji</string>
     <string name="screen_time">Czas ekranowy</string>
     <string name="alignment_changed">Wyrównanie zmienione ✅</string>

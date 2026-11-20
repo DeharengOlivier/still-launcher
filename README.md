@@ -31,11 +31,11 @@ The home screen can also be written from a computer. The receiver is guarded by 
 ```sh
 SPEC='{"entries":[{"app":"com.android.chrome"},{"group":"msg","apps":["org.telegram.messenger"]}]}'
 adb shell am broadcast -a app.stilllauncher.IMPORT_HOME_LAYOUT \
-  -n app.stilllauncher/app.olauncher.helper.HomeLayoutImportReceiver \
+  -n app.stilllauncher/app.still.helper.HomeLayoutImportReceiver \
   --es spec_b64 "$(printf '%s' "$SPEC" | base64)"
 # Undo the last import:
 adb shell am broadcast -a app.stilllauncher.IMPORT_HOME_LAYOUT \
-  -n app.stilllauncher/app.olauncher.helper.HomeLayoutImportReceiver --ez restore_backup true
+  -n app.stilllauncher/app.still.helper.HomeLayoutImportReceiver --ez restore_backup true
 ```
 
 ## Build

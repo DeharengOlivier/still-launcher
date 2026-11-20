@@ -2,10 +2,10 @@
     <string name="app">Aplicație</string>
     <string name="set_as_default_launcher">Setează ca launcher implicit</string>
     <string name="set_as_default_launcher_u"><u>Setează ca launcher implicit</u></string>
-    <string name="set_as_default_launcher_first">Setează mai întâi Olauncher ca implicit</string>
+    <string name="set_as_default_launcher_first">Setează mai întâi Still ca implicit</string>
     <string name="double_tap_to_lock_screen">Atinge dublu pentru blocare</string>
     <string name="home_button_show_recents">Buton Acasă pentru aplicații recente</string>
-    <string name="admin_permission_message">Olauncher promite să folosească responsabil permisiunea de accesibilitate. Olauncher nu colectează și nu partajează date.</string>
+    <string name="admin_permission_message">Still promite să folosească responsabil permisiunea de accesibilitate. Still nu colectează și nu partajează date.</string>
     <string name="off">Dezactivat</string>
     <string name="on">Activat</string>
     <string name="black">Negru</string>
@@ -32,25 +32,25 @@
     <string name="system_default">Sistem</string>
     <string name="dark">Întunecat</string>
     <string name="light">Luminos</string>
-    <string name="welcome_to_olauncher_settings">Bine ai venit în setări!
+    <string name="welcome_to_settings">Bine ai venit în setări!
         \n\nȚine minte, dacă ai întrebări, pagina Despre are răspunsul.</string>
     <string name="rate_us_message">Salut, nu vei mai vedea acest mesaj din nou.
-        \n\nDacă găsești Olauncher util, ai putea să ne lași o recenzie de 5 stele? Ar însemna enorm pentru noi. Mulțumim!</string>
-    <string name="keyboard_message">Salut, tastatura este cea mai rapidă modalitate de a găsi și lansa aplicații în Olauncher. Te putem ruga să o lași activată câteva zile în plus și apoi să decizi?
+        \n\nDacă găsești Still util, ai putea să ne lași o recenzie de 5 stele? Ar însemna enorm pentru noi. Mulțumim!</string>
+    <string name="keyboard_message">Salut, tastatura este cea mai rapidă modalitate de a găsi și lansa aplicații în Still. Te putem ruga să o lași activată câteva zile în plus și apoi să decizi?
         \n\nAlegerea îți aparține întotdeauna.</string>
     <string name="app_usage_message">Pentru a afișa/ascunde timpul petrecut pe ecran de pe ecranul de start, permite sau refuză permisiunea de utilizare a aplicațiilor.
         \n\nNotă: Nu se colectează date privind utilizarea aplicațiilor. Totul este procesat pe dispozitivul tău.</string>
-    <string name="accessibility_service_description">Permisiunea de accesibilitate este necesară pentru a activa gestul - atinge dublu pentru blocare. Niciun fel de date obținute de Olauncher prin acest serviciu nu părăsesc dispozitivul tău.</string>
+    <string name="accessibility_service_description">Permisiunea de accesibilitate este necesară pentru a activa gestul - atinge dublu pentru blocare. Niciun fel de date obținute de Still prin acest serviciu nu părăsesc dispozitivul tău.</string>
     <string name="close">Închide</string>
     <string name="not_now">Nu acum</string>
     <string name="date">Dată</string>
     <string name="date_only">Doar data</string>
     <string name="bottom_on">Jos: Activat</string>
     <string name="bottom_off">Jos: Dezactivat</string>
-    <string name="please_set_olauncher_as_default_first">Te rugăm să setezi mai întâi Olauncher ca implicit</string>
-    <string name="hidden_apps_message">Notă: Atinge \'Olauncher\' în partea de sus a acestei pagini de setări pentru a găsi aplicațiile tale ascunse.\n\nMai multe detalii sunt disponibile pe pagina noastră Despre.</string>
+    <string name="please_set_still_as_default_first">Te rugăm să setezi mai întâi Still ca implicit</string>
+    <string name="hidden_apps_message">Notă: Atinge \'Still\' în partea de sus a acestei pagini de setări pentru a găsi aplicațiile tale ascunse.\n\nMai multe detalii sunt disponibile pe pagina noastră Despre.</string>
     <string name="accessibility_permission">Permisiune de accesibilitate</string>
-    <string name="accessibility_disclosure">Olauncher folosește Accessibility Service API pentru o singură funcție: Atinge dublu pentru blocare. Aceasta îi permite lui Olauncher să îți blocheze ecranul când atingi de două ori ecranul de pornire.\n\nServiciul vede doar atingerile din Olauncher și le folosește doar pentru a-ți bloca ecranul. Nu se uită la alte aplicații sau la ce tastezi.\n\nNicio dată nu este colectată, stocată sau partajată. Nimic nu părăsește dispozitivul tău.\n\nAtinge Acceptă, apoi activează Olauncher în setările de Accesibilitate ale dispozitivului.</string>
+    <string name="accessibility_disclosure">Still folosește Accessibility Service API pentru o singură funcție: Atinge dublu pentru blocare. Aceasta îi permite lui Still să îți blocheze ecranul când atingi de două ori ecranul de pornire.\n\nServiciul vede doar atingerile din Still și le folosește doar pentru a-ți bloca ecranul. Nu se uită la alte aplicații sau la ce tastezi.\n\nNicio dată nu este colectată, stocată sau partajată. Nimic nu părăsește dispozitivul tău.\n\nAtinge Acceptă, apoi activează Still în setările de Accesibilitate ale dispozitivului.</string>
     <string name="accept">Acceptă</string>
     <string name="permission">Permisiune</string>
     <string name="enable">Activează</string>
@@ -61,7 +61,7 @@
     <string name="text_size">Dimensiune text</string>
     <string name="enabled">Activat</string>
     <string name="please_turn_on_double_tap_to_unlock">Te rugăm să activezi atinge dublu pentru blocare</string>
-    <string name="launcher_failed_to_lock_device">Olauncher nu a reușit să blocheze dispozitivul.\nTe rugăm să verifici setările aplicației.</string>
+    <string name="launcher_failed_to_lock_device">Still nu a reușit să blocheze dispozitivul.\nTe rugăm să verifici setările aplicației.</string>
     <string name="long_press_to_select_app">Apasă lung pentru a selecta aplicația</string>
     <string name="unable_to_open_app">Nu se poate deschide aplicația</string>
     <string name="unable_to_open_app_info">Nu se pot deschide informațiile aplicației</string>
@@ -69,7 +69,7 @@
     <string name="type_a_new_app_name_first">Introdu mai întâi un nume nou pentru aplicație</string>
     <string name="app_not_found">Aplicația nu a fost găsită</string>
     <string name="your_wallpaper_will_update_shortly">Fundalul tău se va actualiza în curând</string>
-    <string name="olauncher_is_not_default_launcher">Olauncher nu este implicit. Actualizarea fundalului va eșua.</string>
+    <string name="still_is_not_default_launcher">Still nu este implicit. Actualizarea fundalului va eșua.</string>
     <string name="no_hidden_apps">Nicio aplicație ascunsă</string>
     <string name="hidden_apps">Aplicații ascunse</string>
     <string name="adapter_show">Afișează</string>
