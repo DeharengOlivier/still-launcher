@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Still: a sun resting over still water. -->
+  <rect width="512" height="512" rx="112" fill="#0E0F10"/>
+  <circle cx="256" cy="214" r="46" fill="#F2EFE8"/>
+  <line x1="128" y1="300" x2="384" y2="300" stroke="#F2EFE8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="196" y1="340" x2="316" y2="340" stroke="#F2EFE8" stroke-opacity="0.45" stroke-width="8" stroke-linecap="round"/>
+  <line x1="228" y1="372" x2="284" y2="372" stroke="#F2EFE8" stroke-opacity="0.2" stroke-width="7" stroke-linecap="round"/>
+</svg>
