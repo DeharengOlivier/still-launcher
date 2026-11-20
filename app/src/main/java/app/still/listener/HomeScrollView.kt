@@ -55,9 +55,13 @@ class HomeScrollView @JvmOverloads constructor(
     private var downY = 0f
     private var moved = false
     private var couldScrollUpAtDown = false
+    private var dragging = false
+    private var lastY = 0f
+    private var velocity: android.view.VelocityTracker? = null
     private val longPress = Runnable { if (!moved) onLongPressEmpty() }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (handleDrag(event)) return true
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = event.x
@@ -85,6 +89,52 @@ class HomeScrollView @JvmOverloads constructor(
     }
 
     /**
+     * Scrolls the list when a mostly vertical drag passes the touch slop and the rows overflow.
+     * Once dragging, the rows get a cancel so they do not also see a tap or a long press.
+     */
+    private fun handleDrag(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                dragging = false
+                lastY = event.y
+                velocity?.recycle()
+                velocity = android.view.VelocityTracker.obtain().apply { addMovement(event) }
+                return false
+            }
+            MotionEvent.ACTION_MOVE -> {
+                velocity?.addMovement(event)
+                if (!dragging) {
+                    val dy = abs(event.y - downY)
+                    if (maxScroll() > 0 && dy > touchSlop && dy > abs(event.x - downX)) {
+                        dragging = true
+                        removeCallbacks(longPress)
+                        lastY = event.y
+                        val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+                        super.dispatchTouchEvent(cancel)
+                        cancel.recycle()
+                    } else return false
+                }
+                scrollTo(0, scrollY - (event.y - lastY).toInt())
+                lastY = event.y
+                return true
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (!dragging) return false
+                velocity?.let {
+                    it.addMovement(event)
+                    it.computeCurrentVelocity(1000)
+                    fling(-it.yVelocity.toInt())
+                }
+                velocity?.recycle()
+                velocity = null
+                dragging = false
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
      * The layout's own height includes empty centring space, so ScrollView would let a list that
      * fits move anyway. The limit is computed from the bottom of the last visible row instead.
      */
@@ -104,8 +154,10 @@ class HomeScrollView @JvmOverloads constructor(
         return bottom
     }
 
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean =
-        maxScroll() > 0 && super.onInterceptTouchEvent(ev)
+    // ScrollView's own interception never started a drag over the home rows (measured: it
+    // returned false on every move although the list overflowed), so dragging is handled in
+    // dispatchTouchEvent below and the platform path is switched off.
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean = false
 
     override fun onTouchEvent(ev: MotionEvent): Boolean =
         if (maxScroll() > 0) super.onTouchEvent(ev) else true
